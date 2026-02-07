@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #FF444F;
+  --color-primary-dark: #E03E48;
+  --color-primary-light: #FF6B74;
+  --color-bg-dark: #0A0A0F;
+  --color-panel-dark: #161620;
+  --color-border-dark: rgba(255, 68, 79, 0.15);
+  --color-success: #16A34A;
+  --color-danger: #DC2626;
+  --color-warning: #F59E0B;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* Light mode (default) */
+body {
+  background: #FFFFFF;
+  color: #1A1A1A;
+}
+
+/* Dark mode for dashboard */
+body.dark-mode {
+  background: var(--color-bg-dark);
+  color: #F1F1F1;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 68, 79, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 68, 79, 0.5);
+}
+
+/* Glow effects */
+.glow-red {
+  box-shadow: 0 0 20px rgba(255, 68, 79, 0.4);
+}
+
+.glow-red-pulse {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 68, 79, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 68, 79, 0.6);
+  }
+}
+
+/* Gradient backgrounds */
+.gradient-dark {
+  background: linear-gradient(135deg, #0A0A0F 0%, #161620 100%);
+}
+
+.gradient-card {
+  background: linear-gradient(135deg, rgba(255, 68, 79, 0.1) 0%, rgba(255, 68, 79, 0.05) 100%);
+}
+
+/* Slide in animation */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Status badges */
+.badge-flagged {
+  background: rgba(255, 68, 79, 0.2);
+  color: #FF444F;
+  border: 1px solid rgba(255, 68, 79, 0.3);
+}
+
+.badge-suspicious {
+  background: rgba(245, 158, 11, 0.2);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-normal {
+  background: rgba(22, 163, 74, 0.2);
+  color: #16A34A;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+/* Trading chart container */
+.chart-container {
+  background: #1A1A2E;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Panel styles for dashboard */
+.panel-dark {
+  background: var(--color-panel-dark);
+  border: 1px solid var(--color-border-dark);
+  border-radius: 8px;
+}
+
+/* Button styles */
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Buy/Sell buttons */
+.btn-buy {
+  background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-buy:hover {
+  background: linear-gradient(135deg, #15803D 0%, #166534 100%);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+}
+
+.btn-sell {
+  background: linear-gradient(135deg, #FF444F 0%, #DC2626 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-sell:hover {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  box-shadow: 0 4px 12px rgba(255, 68, 79, 0.4);
+}
+
+/* Table styles */
+.table-dark {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-dark th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 68, 79, 0.1);
+  border-bottom: 1px solid var(--color-border-dark);
+  font-weight: 600;
+  color: #F1F1F1;
+  font-size: 0.875rem;
+}
+
+.table-dark td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border-dark);
+  color: #A1A1AA;
+}
+
+.table-dark tr:hover {
+  background: rgba(255, 68, 79, 0.05);
+}
+
+/* Connection status indicator */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.connected {
+  background: #16A34A;
+  box-shadow: 0 0 8px rgba(22, 163, 74, 0.6);
+}
+
+.status-dot.disconnected {
+  background: #DC2626;
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
+}
