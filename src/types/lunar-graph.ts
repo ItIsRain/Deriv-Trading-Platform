@@ -15,6 +15,7 @@ export interface GraphNodeData {
 
     // Affiliate/Client fields
     email?: string;
+    derivAccountId?: string;
     referralCode?: string;
     affiliateId?: string;
 
@@ -209,6 +210,76 @@ export interface DemoScenario {
   trades: number;
 }
 
+// ============ SMART CALL ============
+
+export type SmartCallStatus = 'pending' | 'initiated' | 'ringing' | 'in-progress' | 'completed' | 'failed';
+
+export interface CopilotAction {
+  type: 'initiate_call';
+  phoneNumber: string;
+  callId?: string;
+  status?: SmartCallStatus;
+}
+
+export interface SmartCall {
+  id: string;
+  callSid: string;
+  phoneNumber: string;
+  status: SmartCallStatus;
+  investigationContext: CopilotContext;
+  initiatedAt: string;
+  startedAt?: string;
+  endedAt?: string;
+  durationSeconds?: number;
+}
+
+export interface CopilotContext {
+  selectedEntities?: string[];
+  fraudRingId?: string;
+  graphSummary?: {
+    totalNodes: number;
+    totalEdges: number;
+    fraudEdges: number;
+    avgRiskScore: number;
+    highRiskEntities: Array<{
+      id: string;
+      label: string;
+      type: string;
+      riskScore: number;
+      email?: string;
+    }>;
+  };
+  fraudRings?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    severity: string;
+    confidence: number;
+    entities: string[];
+    exposure: number;
+    evidence: any[];
+    aiSummary: string;
+  }>;
+  analysis?: {
+    overallRiskScore: number;
+    summary: string;
+    agents?: Array<{
+      name: string;
+      type: string;
+      findingsCount: number;
+      criticalFindings: number;
+      highFindings: number;
+      summary: string;
+    }>;
+    alerts?: Array<{
+      severity: string;
+      title: string;
+      description: string;
+      entities: string[];
+    }>;
+  };
+}
+
 // ============ API RESPONSES ============
 
 export interface BuildGraphResponse {
@@ -226,6 +297,7 @@ export interface AnalyzeResponse {
 export interface CopilotResponse {
   success: boolean;
   message?: CopilotMessage;
+  action?: CopilotAction;
   error?: string;
 }
 
@@ -236,6 +308,30 @@ export interface GenerateDemoResponse {
     affiliates: number;
     clients: number;
     trades: number;
+  };
+  error?: string;
+}
+
+export interface SmartCallInitiateResponse {
+  success: boolean;
+  callId?: string;
+  callSid?: string;
+  status?: SmartCallStatus;
+  phoneNumber?: string;
+  error?: string;
+}
+
+export interface SmartCallStatusResponse {
+  success: boolean;
+  call?: {
+    id: string;
+    callSid?: string;
+    phoneNumber?: string;
+    status: SmartCallStatus;
+    duration?: number;
+    initiatedAt?: string;
+    startedAt?: string;
+    endedAt?: string;
   };
   error?: string;
 }

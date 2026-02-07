@@ -1,8 +1,15 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react';
-import { CopilotMessage, KnowledgeGraph, CombinedAnalysis, FraudRing } from '@/types/lunar-graph';
+import { CopilotMessage, KnowledgeGraph, CombinedAnalysis, FraudRing, CopilotAction, SmartCallStatus } from '@/types/lunar-graph';
 import { v4 as uuidv4 } from 'uuid';
+import CallStatusBanner from './CallStatusBanner';
+
+interface ActiveCall {
+  callId: string;
+  phoneNumber: string;
+  status: SmartCallStatus;
+}
 
 interface InvestigationCopilotProps {
   selectedEntities?: string[];
@@ -64,6 +71,7 @@ export default function InvestigationCopilot({
   const [messages, setMessages] = useState<CopilotMessage[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -148,6 +156,76 @@ export default function InvestigationCopilot({
     return context;
   }, [selectedEntities, fraudRingId, graph, fraudRings, analysis]);
 
+  // Handle call action from copilot response
+  const handleCallAction = useCallback(async (action: CopilotAction) => {
+    if (action.type !== 'initiate_call' || !action.phoneNumber) return;
+
+    console.log('[Copilot] Initiating call to:', action.phoneNumber);
+
+    // Set pending status immediately
+    setActiveCall({
+      callId: '',
+      phoneNumber: action.phoneNumber,
+      status: 'pending',
+    });
+
+    try {
+      const context = buildContext();
+      const response = await fetch('/api/lunar-graph/smart-call/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: action.phoneNumber,
+          context,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.callId) {
+        setActiveCall({
+          callId: data.callId,
+          phoneNumber: action.phoneNumber,
+          status: data.status || 'initiated',
+        });
+      } else {
+        // Call failed to initiate
+        setActiveCall({
+          callId: '',
+          phoneNumber: action.phoneNumber,
+          status: 'failed',
+        });
+
+        // Format error message properly
+        let errorMessage = 'Please try again later.';
+        if (data.error) {
+          errorMessage = typeof data.error === 'string'
+            ? data.error
+            : JSON.stringify(data.error);
+        }
+        console.error('[Copilot] Call initiation failed:', data);
+
+        // Add error message
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuidv4(),
+            role: 'assistant',
+            content: `Sorry, I couldn't initiate the call. ${errorMessage}`,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('[Copilot] Call initiation error:', error);
+      setActiveCall({
+        callId: '',
+        phoneNumber: action.phoneNumber,
+        status: 'failed',
+      });
+    }
+  }, [buildContext]);
+
   // Send message to copilot API
   const sendMessage = useCallback(async () => {
     const trimmedInput = input.trim();
@@ -181,6 +259,11 @@ export default function InvestigationCopilot({
 
       if (data.success && data.message) {
         setMessages((prev) => [...prev, data.message]);
+
+        // Check if there's a call action to handle
+        if (data.action && data.action.type === 'initiate_call') {
+          handleCallAction(data.action);
+        }
       } else {
         setMessages((prev) => [
           ...prev,
@@ -205,7 +288,7 @@ export default function InvestigationCopilot({
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, buildContext]);
+  }, [input, isLoading, buildContext, handleCallAction]);
 
   // Handle Enter key
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -243,6 +326,21 @@ export default function InvestigationCopilot({
           </div>
         )}
       </div>
+
+      {/* Call Status Banner */}
+      {activeCall && (
+        <div className="px-4 py-2">
+          <CallStatusBanner
+            callId={activeCall.callId}
+            phoneNumber={activeCall.phoneNumber}
+            initialStatus={activeCall.status}
+            onClose={() => setActiveCall(null)}
+            onStatusChange={(status) => {
+              setActiveCall((prev) => prev ? { ...prev, status } : null);
+            }}
+          />
+        </div>
+      )}
 
       {/* Messages */}
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">

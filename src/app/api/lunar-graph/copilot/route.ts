@@ -3,7 +3,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { openRouterClient } from '@/lib/lunar-graph/openrouter-client';
-import { CopilotResponse, CopilotMessage } from '@/types/lunar-graph';
+import { CopilotResponse, CopilotMessage, CopilotAction } from '@/types/lunar-graph';
+import { detectCallIntent } from '@/lib/lunar-graph/call-intent-detector';
 import { v4 as uuidv4 } from 'uuid';
 
 interface CopilotContext {
@@ -285,6 +286,43 @@ export async function POST(request: NextRequest): Promise<NextResponse<CopilotRe
       hasAnalysis: !!context.analysis,
     });
 
+    // Check for call intent before processing the message
+    const callIntent = detectCallIntent(message);
+
+    if (callIntent.detected) {
+      console.log('[Copilot] Call intent detected:', callIntent);
+
+      let responseContent: string;
+      let action: CopilotAction | undefined;
+
+      if (callIntent.phoneNumber) {
+        // Phone number found - return action to initiate call
+        responseContent = `I'll call you now at **${callIntent.phoneNumber}** to discuss the investigation findings. Please answer when your phone rings - I'll have all the fraud analysis data ready to discuss with you.`;
+        action = {
+          type: 'initiate_call',
+          phoneNumber: callIntent.phoneNumber,
+          status: 'pending',
+        };
+      } else {
+        // Call intent detected but no phone number
+        responseContent = `I'd be happy to discuss the investigation findings over a call. Please provide your phone number and I'll call you right away.\n\nFor example: "Call me at +1 555 123 4567"`;
+      }
+
+      const copilotMessage: CopilotMessage = {
+        id: uuidv4(),
+        role: 'assistant',
+        content: responseContent,
+        timestamp: new Date().toISOString(),
+      };
+
+      return NextResponse.json({
+        success: true,
+        message: copilotMessage,
+        action,
+      });
+    }
+
+    // No call intent - process as normal query
     const response = await processQuery(message, context);
 
     const copilotMessage: CopilotMessage = {

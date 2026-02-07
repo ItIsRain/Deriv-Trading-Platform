@@ -58,15 +58,28 @@ async function getRecentTrades(affiliateId: string, symbol: string, excludeTrade
   }
 }
 
-// Get visitor/tracking data for the affiliate
+// Get visitor/tracking data for the affiliate (via referral_code)
 async function getTrackingData(affiliateId: string) {
   if (!isSupabaseConfigured()) return [];
 
   try {
+    // First get the affiliate's referral_code
+    const { data: affiliate, error: affError } = await db
+      .from('affiliates')
+      .select('referral_code')
+      .eq('id', affiliateId)
+      .single();
+
+    if (affError || !affiliate?.referral_code) {
+      console.log('[CheckTrade] No affiliate or referral_code found for:', affiliateId);
+      return [];
+    }
+
+    // Query visitor_tracking by referral_code
     const { data, error } = await db
       .from('visitor_tracking')
       .select('*')
-      .eq('affiliate_id', affiliateId)
+      .eq('referral_code', affiliate.referral_code)
       .order('created_at', { ascending: false })
       .limit(20);
 

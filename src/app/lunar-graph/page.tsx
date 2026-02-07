@@ -563,9 +563,6 @@ export default function LunarGraphPage() {
               </div>
             </div>
             <div className="lg-header-right">
-              <Link href="/dashboard" className="lg-portal-link">
-                Partner Portal
-              </Link>
               <div className="lg-live-badge">
                 <span className="lg-live-dot" />
                 <span className="lg-live-text">Live Monitoring</span>
