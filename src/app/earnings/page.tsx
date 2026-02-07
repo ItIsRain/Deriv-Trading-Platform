@@ -6,7 +6,6 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import {
   IconUsers,
   IconHome,
-  IconSettings,
   IconBell,
   IconSearch,
   IconChevronRight,
@@ -62,7 +61,6 @@ export default function EarningsPage() {
     { icon: IconBroadcast, label: 'Broadcast', id: 'broadcast', href: '/broadcast' },
     { icon: IconWallet, label: 'Earnings', id: 'commissions', href: '/earnings' },
     { icon: IconFileAnalytics, label: 'Analytics', id: 'reports', href: '/analytics' },
-    { icon: IconSettings, label: 'Settings', id: 'settings', href: '/settings' },
   ];
 
   // Use real earnings data or fallback to empty
@@ -598,8 +596,7 @@ export default function EarningsPage() {
         <aside className="sidebar">
           <div className="logo-section">
             <div className="logo">
-              <div className="logo-icon">L</div>
-              <span className="logo-text">LunarGraph</span>
+              <img src="/LunarDark.svg" alt="Logo" style={{ height: 64, width: 'auto' }} />
             </div>
           </div>
 
@@ -626,9 +623,9 @@ export default function EarningsPage() {
 
           <div className="user-section">
             <div className="user-card">
-              <Avatar color="red" radius="md" size={40}>MA</Avatar>
+              <Avatar color="red" radius="md" size={40}>JD</Avatar>
               <div className="user-info">
-                <div className="user-name">Mohamed Al-Rashid</div>
+                <div className="user-name">John Doe</div>
                 <div className="user-role">Premium Partner</div>
               </div>
             </div>

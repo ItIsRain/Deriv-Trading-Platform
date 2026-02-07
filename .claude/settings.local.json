@@ -6,7 +6,8 @@
       "Bash(npx tsc:*)",
       "mcp__plugin_supabase_supabase__apply_migration",
       "mcp__plugin_supabase_supabase__get_advisors",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "mcp__sequential-thinking__sequentialthinking"
     ]
   }
 }

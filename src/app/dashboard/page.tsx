@@ -299,13 +299,7 @@ export default function FraudDashboard() {
         <Container size="xl" className="py-3">
           <Group justify="space-between">
             <Group>
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center glow-red">
-                <span className="text-white font-bold text-lg">L</span>
-              </div>
-              <div>
-                <Title order={4} c="white">LunarGraph</Title>
-                <Text size="xs" c="dimmed">Fraud Intelligence Platform</Text>
-              </div>
+              <img src="/LunarDark.svg" alt="Logo" style={{ height: 40 }} />
             </Group>
             <Group>
               <Link href="/">

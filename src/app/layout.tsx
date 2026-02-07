@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { MantineProvider, ColorSchemeScript } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/charts/styles.css';
 import './globals.css';
+import { TrackingWrapper } from '@/components/TrackingWrapper';
 
 export const metadata: Metadata = {
   title: 'LunarGraph | AI-Powered Fraud Detection',
@@ -44,7 +46,11 @@ export default function RootLayout({
           }}
         >
           <Notifications position="top-right" />
-          {children}
+          <Suspense fallback={null}>
+            <TrackingWrapper>
+              {children}
+            </TrackingWrapper>
+          </Suspense>
         </MantineProvider>
       </body>
     </html>

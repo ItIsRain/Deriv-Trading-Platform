@@ -1018,3 +1018,297 @@ function formatTimeAgo(date: Date): string {
   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
   return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
 }
+
+// ============ TRACKING DATA RETRIEVAL ============
+
+export interface VisitorTrackingData {
+  id: string;
+  visitorId: string;
+  sessionId: string;
+  eventType: string;
+  page: string;
+  ipAddress: string;
+  country: string;
+  city: string;
+  userAgent: string;
+  browserName: string;
+  osName: string;
+  deviceType: string;
+  referrer: string;
+  utmSource: string;
+  utmCampaign: string;
+  createdAt: Date;
+}
+
+export interface TrackingStats {
+  totalVisits: number;
+  uniqueVisitors: number;
+  uniqueSessions: number;
+  pageViews: number;
+  countries: number;
+  avgTimeOnPage: number;
+}
+
+export async function getTrackingStatsAsync(): Promise<TrackingStats> {
+  if (!isSupabaseConfigured()) {
+    return {
+      totalVisits: 0,
+      uniqueVisitors: 0,
+      uniqueSessions: 0,
+      pageViews: 0,
+      countries: 0,
+      avgTimeOnPage: 0,
+    };
+  }
+
+  try {
+    const [totalRes, visitorsRes, sessionsRes, pageViewsRes, countriesRes, timeRes] = await Promise.all([
+      db.from('visitor_tracking').select('*', { count: 'exact', head: true }),
+      db.from('visitor_tracking').select('visitor_id').limit(10000),
+      db.from('visitor_tracking').select('session_id').limit(10000),
+      db.from('visitor_tracking').select('*', { count: 'exact', head: true }).eq('event_type', 'pageview'),
+      db.from('visitor_tracking').select('country').not('country', 'is', null).limit(10000),
+      db.from('visitor_tracking').select('time_on_page').not('time_on_page', 'is', null),
+    ]);
+
+    const uniqueVisitors = new Set(visitorsRes.data?.map((r: any) => r.visitor_id) || []).size;
+    const uniqueSessions = new Set(sessionsRes.data?.map((r: any) => r.session_id) || []).size;
+    const uniqueCountries = new Set(countriesRes.data?.map((r: any) => r.country) || []).size;
+    const avgTime = timeRes.data?.length
+      ? timeRes.data.reduce((sum: number, r: any) => sum + (r.time_on_page || 0), 0) / timeRes.data.length
+      : 0;
+
+    return {
+      totalVisits: totalRes.count || 0,
+      uniqueVisitors,
+      uniqueSessions,
+      pageViews: pageViewsRes.count || 0,
+      countries: uniqueCountries,
+      avgTimeOnPage: Math.round(avgTime),
+    };
+  } catch (error) {
+    console.error('[Store] getTrackingStatsAsync error:', error);
+    return {
+      totalVisits: 0,
+      uniqueVisitors: 0,
+      uniqueSessions: 0,
+      pageViews: 0,
+      countries: 0,
+      avgTimeOnPage: 0,
+    };
+  }
+}
+
+export async function getRecentVisitorsAsync(limit: number = 20): Promise<VisitorTrackingData[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { data, error } = await db
+      .from('visitor_tracking')
+      .select('*')
+      .eq('event_type', 'pageview')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      visitorId: row.visitor_id,
+      sessionId: row.session_id,
+      eventType: row.event_type,
+      page: row.page_url,
+      ipAddress: row.ip_address || 'Unknown',
+      country: row.country || 'Unknown',
+      city: row.city || 'Unknown',
+      userAgent: row.user_agent || '',
+      browserName: row.browser_name || 'Unknown',
+      osName: row.os_name || 'Unknown',
+      deviceType: row.device_type || 'Unknown',
+      referrer: row.referrer || 'Direct',
+      utmSource: row.utm_source || '',
+      utmCampaign: row.utm_campaign || '',
+      createdAt: new Date(row.created_at),
+    }));
+  } catch (error) {
+    console.error('[Store] getRecentVisitorsAsync error:', error);
+    return [];
+  }
+}
+
+export async function getVisitorsByCountryAsync(): Promise<Array<{ country: string; count: number }>> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { data } = await db
+      .from('visitor_tracking')
+      .select('country')
+      .eq('event_type', 'pageview')
+      .not('country', 'is', null);
+
+    if (!data) return [];
+
+    // Count by country
+    const countryMap: Record<string, number> = {};
+    data.forEach((row: any) => {
+      const country = row.country || 'Unknown';
+      countryMap[country] = (countryMap[country] || 0) + 1;
+    });
+
+    return Object.entries(countryMap)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+  } catch (error) {
+    console.error('[Store] getVisitorsByCountryAsync error:', error);
+    return [];
+  }
+}
+
+export async function getVisitorsByDeviceAsync(): Promise<Array<{ deviceType: string; count: number }>> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { data } = await db
+      .from('visitor_tracking')
+      .select('device_type')
+      .eq('event_type', 'pageview');
+
+    if (!data) return [];
+
+    // Count by device
+    const deviceMap: Record<string, number> = {};
+    data.forEach((row: any) => {
+      const device = row.device_type || 'Unknown';
+      deviceMap[device] = (deviceMap[device] || 0) + 1;
+    });
+
+    return Object.entries(deviceMap)
+      .map(([deviceType, count]) => ({ deviceType, count }))
+      .sort((a, b) => b.count - a.count);
+  } catch (error) {
+    console.error('[Store] getVisitorsByDeviceAsync error:', error);
+    return [];
+  }
+}
+
+export async function getVisitorsByBrowserAsync(): Promise<Array<{ browser: string; count: number }>> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { data } = await db
+      .from('visitor_tracking')
+      .select('browser_name')
+      .eq('event_type', 'pageview');
+
+    if (!data) return [];
+
+    // Count by browser
+    const browserMap: Record<string, number> = {};
+    data.forEach((row: any) => {
+      const browser = row.browser_name || 'Unknown';
+      browserMap[browser] = (browserMap[browser] || 0) + 1;
+    });
+
+    return Object.entries(browserMap)
+      .map(([browser, count]) => ({ browser, count }))
+      .sort((a, b) => b.count - a.count);
+  } catch (error) {
+    console.error('[Store] getVisitorsByBrowserAsync error:', error);
+    return [];
+  }
+}
+
+export async function getTopPagesAsync(): Promise<Array<{ page: string; views: number; uniqueVisitors: number }>> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { data } = await db
+      .from('visitor_tracking')
+      .select('page_url, visitor_id')
+      .eq('event_type', 'pageview');
+
+    if (!data) return [];
+
+    // Aggregate by page
+    const pageMap: Record<string, { views: number; visitors: Set<string> }> = {};
+    data.forEach((row: any) => {
+      const page = row.page_url || '/';
+      if (!pageMap[page]) {
+        pageMap[page] = { views: 0, visitors: new Set() };
+      }
+      pageMap[page].views++;
+      pageMap[page].visitors.add(row.visitor_id);
+    });
+
+    return Object.entries(pageMap)
+      .map(([page, stats]) => ({
+        page,
+        views: stats.views,
+        uniqueVisitors: stats.visitors.size,
+      }))
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 10);
+  } catch (error) {
+    console.error('[Store] getTopPagesAsync error:', error);
+    return [];
+  }
+}
+
+export async function getReferralSourcesAsync(): Promise<Array<{ source: string; count: number }>> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { data } = await db
+      .from('visitor_tracking')
+      .select('referrer_domain, utm_source')
+      .eq('event_type', 'pageview');
+
+    if (!data) return [];
+
+    // Count by source
+    const sourceMap: Record<string, number> = {};
+    data.forEach((row: any) => {
+      const source = row.utm_source || row.referrer_domain || 'Direct';
+      sourceMap[source] = (sourceMap[source] || 0) + 1;
+    });
+
+    return Object.entries(sourceMap)
+      .map(([source, count]) => ({ source, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+  } catch (error) {
+    console.error('[Store] getReferralSourcesAsync error:', error);
+    return [];
+  }
+}
+
+export async function getHourlyVisitsAsync(): Promise<Array<{ hour: number; count: number }>> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data } = await db
+      .from('visitor_tracking')
+      .select('created_at')
+      .eq('event_type', 'pageview')
+      .gte('created_at', last24h);
+
+    if (!data) return [];
+
+    // Count by hour
+    const hourMap: Record<number, number> = {};
+    for (let i = 0; i < 24; i++) hourMap[i] = 0;
+
+    data.forEach((row: any) => {
+      const hour = new Date(row.created_at).getHours();
+      hourMap[hour]++;
+    });
+
+    return Object.entries(hourMap)
+      .map(([hour, count]) => ({ hour: parseInt(hour), count }));
+  } catch (error) {
+    console.error('[Store] getHourlyVisitsAsync error:', error);
+    return [];
+  }
+}

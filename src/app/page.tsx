@@ -12,7 +12,6 @@ import {
   IconCopy,
   IconCheck,
   IconHome,
-  IconSettings,
   IconBell,
   IconSearch,
   IconChevronRight,
@@ -243,7 +242,6 @@ export default function PartnerDashboard() {
     { icon: IconBroadcast, label: 'Broadcast', id: 'broadcast', href: '/broadcast' },
     { icon: IconWallet, label: 'Earnings', id: 'commissions', href: '/earnings' },
     { icon: IconFileAnalytics, label: 'Analytics', id: 'reports', href: '/analytics' },
-    { icon: IconSettings, label: 'Settings', id: 'settings', href: '/settings' },
   ];
 
   // Get icon and color for activity type
@@ -1098,8 +1096,7 @@ export default function PartnerDashboard() {
         <aside className="sidebar">
           <div className="logo-section">
             <div className="logo">
-              <div className="logo-icon">L</div>
-              <span className="logo-text">LunarGraph</span>
+              <img src="/LunarDark.svg" alt="Logo" style={{ height: 64, width: 'auto' }} />
             </div>
           </div>
 
@@ -1127,9 +1124,9 @@ export default function PartnerDashboard() {
 
           <div className="user-section">
             <div className="user-card">
-              <Avatar color="red" radius="md" size={44}>MA</Avatar>
+              <Avatar color="red" radius="md" size={44}>JD</Avatar>
               <div className="user-info">
-                <div className="user-name">Mohamed Al-Rashid</div>
+                <div className="user-name">John Doe</div>
                 <div className="user-role">Premium Partner</div>
               </div>
               <div className="user-status" />
@@ -1142,7 +1139,7 @@ export default function PartnerDashboard() {
           <header className="top-header">
             <div className="header-left">
               <h1>Dashboard</h1>
-              <p>Welcome back, Mohamed. Here's your network overview.</p>
+              <p>Welcome back. Here's your network overview.</p>
             </div>
             <div className="header-right">
               <div className="search-box">

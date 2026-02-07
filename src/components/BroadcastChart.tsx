@@ -337,7 +337,7 @@ export default function BroadcastChart({
         return visibleRange && c.time >= (visibleRange.from as number) && c.time <= (visibleRange.to as number);
       });
       if (visibleCandles.length === 0) {
-        estimatedPrice = currentPrice;
+        estimatedPrice = currentPrice as any;
       } else {
         const container = containerRef.current;
         if (!container) return null;
@@ -346,11 +346,11 @@ export default function BroadcastChart({
         const maxPrice = Math.max(...visibleCandles.map((c) => c.high));
         const priceRangeVal = maxPrice - minPrice || 1;
         const padding = priceRangeVal * 0.1;
-        estimatedPrice = maxPrice + padding - ((pixelY / chartHeight) * (priceRangeVal + 2 * padding));
+        estimatedPrice = (maxPrice + padding - ((pixelY / chartHeight) * (priceRangeVal + 2 * padding))) as any;
       }
     }
 
-    return { x: estimatedTime, y: estimatedPrice };
+    return { x: estimatedTime, y: estimatedPrice as number };
   }, [candles, currentPrice, logicalToTime]);
 
   // Convert chart coordinates to pixel coordinates
@@ -388,7 +388,7 @@ export default function BroadcastChart({
       const maxPrice = Math.max(...visibleCandles.map((c) => c.high));
       const priceRangeVal = maxPrice - minPrice || 1;
       const padding = priceRangeVal * 0.1;
-      pixelY = ((maxPrice + padding - point.y) / (priceRangeVal + 2 * padding)) * chartHeight;
+      pixelY = (((maxPrice + padding - point.y) / (priceRangeVal + 2 * padding)) * chartHeight) as any;
     }
 
     if (x === null || pixelY === null) return null;

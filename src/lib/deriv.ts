@@ -135,7 +135,7 @@ export class DerivClient {
   private messageQueue: Array<{ message: any; resolve: (data: any) => void; reject: (err: Error) => void }> = [];
   private reqId = 1;
 
-  async connect(token?: string): Promise<void> {
+  async connect(token?: string): Promise<DerivAuthorizeResponse> {
     return new Promise((resolve, reject) => {
       try {
         this.ws = new WebSocket(WS_URL);
@@ -146,8 +146,8 @@ export class DerivClient {
 
           // Authorize with provided token or default
           try {
-            await this.authorize(token || API_TOKEN);
-            resolve();
+            const authResponse = await this.authorize(token || API_TOKEN);
+            resolve(authResponse);
           } catch (err) {
             reject(err);
           }
@@ -283,7 +283,7 @@ export class DerivClient {
   async authorize(token: string): Promise<DerivAuthorizeResponse> {
     const response = await this.send<DerivAuthorizeResponse>({ authorize: token });
     this.isAuthorized = true;
-    console.log('Authorized as:', response.authorize?.loginid, 'Account type:', this.getAccountType(response.authorize?.loginid || ''));
+    console.log('Authorized as:', response.authorize?.loginid, 'Fullname:', response.authorize?.fullname, 'Account type:', this.getAccountType(response.authorize?.loginid || ''));
     return response;
   }
 
@@ -307,13 +307,32 @@ export class DerivClient {
   }
 
   async subscribeTicks(symbol: string, callback: (tick: DerivTickResponse) => void): Promise<void> {
+    // Check if already subscribed to this symbol
+    if (this.subscriptionHandlers.has(`tick_${symbol}`)) {
+      console.log(`[Deriv] Already subscribed to ${symbol}, updating callback`);
+      this.subscriptionHandlers.set(`tick_${symbol}`, callback);
+      return;
+    }
     this.subscriptionHandlers.set(`tick_${symbol}`, callback);
-    await this.send({ ticks: symbol, subscribe: 1 });
+    try {
+      await this.send({ ticks: symbol, subscribe: 1 });
+    } catch (err: any) {
+      // Ignore "already subscribed" errors
+      if (err.message?.includes('already subscribed')) {
+        console.log(`[Deriv] Already subscribed to ${symbol}`);
+        return;
+      }
+      throw err;
+    }
   }
 
   async unsubscribeTicks(symbol: string): Promise<void> {
     this.subscriptionHandlers.delete(`tick_${symbol}`);
-    // Note: In production, send forget request
+    try {
+      await this.send({ forget_all: 'ticks' });
+    } catch (err) {
+      console.log('[Deriv] Error unsubscribing:', err);
+    }
   }
 
   async getTickHistory(symbol: string, count = 100, granularity = 60): Promise<CandleData[]> {

@@ -194,7 +194,7 @@ export default function BroadcastPage() {
       if (!isBroadcasting) {
         // Push drawings to database
         if (isSupabaseConfigured()) {
-          const { error } = await supabase
+          const { error } = await (supabase as any)
             .from('broadcast_drawings')
             .upsert({
               symbol,
@@ -223,7 +223,7 @@ export default function BroadcastPage() {
       } else {
         // Stop broadcasting - set is_live to false
         if (isSupabaseConfigured()) {
-          const { error } = await supabase
+          const { error } = await (supabase as any)
             .from('broadcast_drawings')
             .upsert({
               symbol,
