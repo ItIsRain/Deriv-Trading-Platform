@@ -105,8 +105,9 @@ export async function GET(request: NextRequest) {
 
     // Get detailed info for each found client
     const clientDetails = await Promise.all(clients.map(async (client) => {
-      const clientRiskScore = riskScoreMap.get(client.id) || 0;
+      // Clients inherit risk from their affiliate (since clients aren't in the graph)
       const affiliateRiskScore = client.affiliate_id ? (riskScoreMap.get(client.affiliate_id) || 0) : 0;
+      const clientRiskScore = affiliateRiskScore; // Use affiliate's risk score
 
       // Get trades
       const { data: trades } = await supabase

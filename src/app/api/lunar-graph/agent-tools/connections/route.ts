@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
         .in('id', Array.from(entityIds)),
       supabase
         .from('clients')
-        .select('id, deriv_account_id')
+        .select('id, deriv_account_id, affiliate_id')
         .in('id', Array.from(entityIds)),
     ]);
 
@@ -117,8 +117,9 @@ export async function GET(request: NextRequest) {
       entityMap.set(a.id, { ...a, type: 'affiliate', riskScore: riskScoreMap.get(a.id) || 0 });
     });
     (clientsResult.data || []).forEach(c => {
-      // Map deriv_account_id to name for consistent response
-      entityMap.set(c.id, { ...c, name: c.deriv_account_id, type: 'client', riskScore: riskScoreMap.get(c.id) || 0 });
+      // Map deriv_account_id to name, use affiliate's risk score (clients aren't in graph)
+      const affiliateRisk = c.affiliate_id ? (riskScoreMap.get(c.affiliate_id) || 0) : 0;
+      entityMap.set(c.id, { ...c, name: c.deriv_account_id, type: 'client', riskScore: affiliateRisk });
     });
 
     // Group by connection type

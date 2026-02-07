@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
       const clientList = (clients || []).map(c => ({
         ...c,
         name: c.deriv_account_id, // Map for consistent response
-        riskScore: riskScoreMap.get(c.id) || 0,
+        riskScore: affiliateRiskScore, // Clients inherit affiliate's risk score
       }));
       const highRiskClients = clientList.filter(c => c.riskScore >= 50);
 

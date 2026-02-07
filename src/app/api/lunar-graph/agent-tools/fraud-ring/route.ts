@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
           .in('id', entityIds),
         supabase
           .from('clients')
-          .select('id, deriv_account_id')
+          .select('id, deriv_account_id, affiliate_id')
           .in('id', entityIds),
       ]);
 
@@ -90,7 +90,8 @@ export async function GET(request: NextRequest) {
         ...c,
         name: c.deriv_account_id, // Map deriv_account_id to name for consistent response
         entityType: 'client',
-        riskScore: riskScoreMap.get(c.id) || 0,
+        // Use affiliate's risk score (clients aren't in graph)
+        riskScore: c.affiliate_id ? (riskScoreMap.get(c.affiliate_id) || 0) : 0,
       }));
       const allEntities = [...affiliates, ...clients];
 

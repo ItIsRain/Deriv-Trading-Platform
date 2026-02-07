@@ -221,13 +221,17 @@ export async function GET(request: NextRequest) {
       // Trade list
       trades: tradeList.slice(0, 30).map(t => {
         const clientData = t.clients as any;
+        // Use client's affiliate risk score (since clients aren't in the graph)
+        const affiliateId = clientData?.affiliate_id;
+        const riskScore = affiliateId ? (riskScoreMap.get(affiliateId) || 0) : 0;
         return {
           type: t.contract_type,
           symbol: t.symbol,
           amount: t.amount,
           profit: t.profit,
           clientId: clientData?.deriv_account_id || t.client_id,
-          clientRiskScore: riskScoreMap.get(t.client_id) || 0,
+          clientRiskScore: riskScore,
+          affiliateRiskScore: riskScore,
           timestamp: t.created_at,
         };
       }),

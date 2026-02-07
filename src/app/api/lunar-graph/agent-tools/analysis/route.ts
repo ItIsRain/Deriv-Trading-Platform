@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       graphSnapshotResult,
     ] = await Promise.all([
       supabase.from('affiliates').select('id, name'),
-      supabase.from('clients').select('id, deriv_account_id'),
+      supabase.from('clients').select('id, deriv_account_id, affiliate_id'),
       supabase.from('trades').select('id, contract_type, amount, profit'),
       supabase.from('fraud_rings').select('*').order('created_at', { ascending: false }),
       supabase.from('lunar_alerts').select('*').eq('acknowledged', false),
@@ -61,8 +61,12 @@ export async function GET(request: NextRequest) {
       : 0;
 
     // High risk counts (use graph nodes for accurate risk scores)
+    // Clients inherit their affiliate's risk score since clients aren't in the graph
     const highRiskAffiliates = affiliates.filter(a => (riskScoreMap.get(a.id) || 0) >= 50);
-    const highRiskClients = clients.filter(c => (riskScoreMap.get(c.id) || 0) >= 50);
+    const highRiskClients = clients.filter(c => {
+      const affiliateRisk = c.affiliate_id ? (riskScoreMap.get(c.affiliate_id) || 0) : 0;
+      return affiliateRisk >= 50;
+    });
 
     // Trade stats
     const totalTradeVolume = trades.reduce((sum, t) => sum + (t.amount || 0), 0);
@@ -117,7 +121,7 @@ export async function GET(request: NextRequest) {
         totalHighRiskEntities: highRiskAffiliates.length + highRiskClients.length,
         topHighRiskEntities: [
           ...highRiskAffiliates.map(a => ({ name: a.name, type: 'affiliate', riskScore: riskScoreMap.get(a.id) || 0 })),
-          ...highRiskClients.map(c => ({ name: c.deriv_account_id || c.id, type: 'client', riskScore: riskScoreMap.get(c.id) || 0 })),
+          ...highRiskClients.map(c => ({ name: c.deriv_account_id || c.id, type: 'client', riskScore: c.affiliate_id ? (riskScoreMap.get(c.affiliate_id) || 0) : 0 })),
         ]
           .sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0))
           .slice(0, 10),

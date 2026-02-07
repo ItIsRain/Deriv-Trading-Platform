@@ -537,28 +537,6 @@ function createTradeLinks(trades: TradeRow[], clients: ClientRow[], affiliates: 
   return edges;
 }
 
-function createClientTradeLinks(trades: TradeRow[]): GraphEdgeData[] {
-  const edges: GraphEdgeData[] = [];
-
-  for (const trade of trades) {
-    // Link trade to client
-    if (trade.client_id) {
-      edges.push(
-        createEdge(
-          `client_${trade.client_id}`,
-          `trade_${trade.id}`,
-          'trade_link',
-          1,
-          false,
-          { description: 'Client trade' }
-        )
-      );
-    }
-  }
-
-  return edges;
-}
-
 // ============ RISK SCORING ============
 
 function calculateRiskScores(
@@ -574,21 +552,7 @@ function calculateRiskScores(
     nodeEdges[edge.target].push(edge);
   }
 
-  // Build affiliate-client relationship map from referral edges
-  const clientToAffiliate: Record<string, string> = {};
-  for (const edge of edges) {
-    if (edge.type === 'referral') {
-      // referral edge: affiliate -> client
-      if (edge.source.startsWith('affiliate_') && edge.target.startsWith('client_')) {
-        clientToAffiliate[edge.target] = edge.source;
-      }
-    }
-  }
-
-  // First pass: calculate base risk scores
-  const nodeRiskScores: Record<string, number> = {};
-
-  for (const node of nodes) {
+  return nodes.map(node => {
     const connectedEdges = nodeEdges[node.id] || [];
     const fraudEdges = connectedEdges.filter(e => e.isFraudIndicator);
 
@@ -626,28 +590,11 @@ function calculateRiskScores(
     if (fraudEdges.length >= 3) riskScore += 15;
     if (fraudEdges.length >= 5) riskScore += 10;
 
-    nodeRiskScores[node.id] = Math.min(100, Math.round(riskScore));
-  }
-
-  // Second pass: propagate affiliate risk to clients
-  // Clients inherit a portion of their affiliate's risk
-  for (const node of nodes) {
-    if (node.type === 'client') {
-      const affiliateNodeId = clientToAffiliate[node.id];
-      if (affiliateNodeId && nodeRiskScores[affiliateNodeId]) {
-        const affiliateRisk = nodeRiskScores[affiliateNodeId];
-        const clientBaseRisk = nodeRiskScores[node.id];
-        // Client inherits 70% of affiliate's risk (if higher than their own)
-        const inheritedRisk = Math.round(affiliateRisk * 0.7);
-        nodeRiskScores[node.id] = Math.min(100, Math.max(clientBaseRisk, inheritedRisk));
-      }
-    }
-  }
-
-  return nodes.map(node => ({
-    ...node,
-    riskScore: nodeRiskScores[node.id] || 0,
-  }));
+    return {
+      ...node,
+      riskScore: Math.min(100, Math.round(riskScore)),
+    };
+  });
 }
 
 // ============ MAIN BUILDER ============
@@ -665,46 +612,36 @@ export async function buildKnowledgeGraph(): Promise<KnowledgeGraph> {
 
   console.log(`[GraphBuilder] Fetched: ${affiliates.length} affiliates, ${clients.length} clients, ${trades.length} trades, ${visitors.length} visitors`);
 
-  // Create base nodes - include clients for proper risk propagation
+  // Create base nodes (no client nodes - show affiliates directly linked to trades)
   const affiliateNodes = affiliates.map(createAffiliateNode);
-  const clientNodes = clients.map(createClientNode);
   const tradeNodes = trades.slice(0, 200).map(createTradeNode); // Limit trades for performance
-
-  // Create referral edges (affiliate -> client)
-  const referralEdges = detectReferralEdges(affiliates, clients);
 
   // Detect patterns - use affiliates for IP/device detection based on their clients
   // Group clients by affiliate to detect multi-account patterns
   const ipDetection = detectIPOverlaps(clients);
   const deviceDetection = detectDeviceMatches(clients);
 
-  // Create all edges
+  // Create all edges (no referral edges since we removed client nodes)
   const timingSyncEdges = detectTimingSync(trades);
   const oppositeEdges = detectOppositePositions(trades);
   const rapidTradingEdges = detectRapidTrading(trades);
   const tradeLinkEdges = createTradeLinks(trades, clients, affiliates);
 
-  // Create client-to-trade edges
-  const clientTradeEdges = createClientTradeLinks(trades);
-
   // Combine all nodes and edges
   let allNodes: GraphNodeData[] = [
     ...affiliateNodes,
-    ...clientNodes,
     ...tradeNodes,
     ...ipDetection.nodes,
     ...deviceDetection.nodes,
   ];
 
   const allEdges: GraphEdgeData[] = [
-    ...referralEdges,
     ...ipDetection.edges,
     ...deviceDetection.edges,
     ...timingSyncEdges,
     ...oppositeEdges,
     ...rapidTradingEdges,
     ...tradeLinkEdges,
-    ...clientTradeEdges,
   ];
 
   // Calculate risk scores
