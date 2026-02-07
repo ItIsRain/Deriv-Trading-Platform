@@ -439,528 +439,628 @@ export default function LunarGraphPage() {
   const highlightedNodes = selectedRing?.entities || [];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0F]">
-      {/* Header */}
-      <header className="border-b border-[rgba(255,68,79,0.15)] bg-[#161620]">
-        <div className="max-w-[1800px] mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        .lg-page { min-height: 100vh; background: #06060B; font-family: 'Outfit', sans-serif; position: relative; overflow-x: hidden; }
+        .lg-page::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255,68,79,0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(59,130,246,0.05) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+        .lg-page > * { position: relative; z-index: 1; }
+
+        .lg-header { background: linear-gradient(180deg, rgba(12,12,18,0.95) 0%, rgba(12,12,18,0.8) 100%); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.06); position: sticky; top: 0; z-index: 50; }
+        .lg-header-inner { max-width: 1800px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .lg-header-left { display: flex; align-items: center; gap: 16px; }
+        .lg-header-divider { width: 1px; height: 28px; background: linear-gradient(180deg, transparent, rgba(255,255,255,0.15), transparent); }
+        .lg-header-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+        .lg-header-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.15em; margin-top: 1px; }
+        .lg-header-right { display: flex; align-items: center; gap: 12px; }
+        .lg-portal-link { padding: 6px 16px; font-size: 13px; color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; text-decoration: none; transition: all 0.2s; font-weight: 500; }
+        .lg-portal-link:hover { color: #fff; border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+        .lg-live-badge { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; background: rgba(255,68,79,0.08); border: 1px solid rgba(255,68,79,0.15); }
+        .lg-live-dot { width: 6px; height: 6px; border-radius: 50%; background: #FF444F; box-shadow: 0 0 8px rgba(255,68,79,0.6), 0 0 20px rgba(255,68,79,0.3); animation: lg-pulse 2s ease-in-out infinite; }
+        .lg-live-text { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: #FF444F; letter-spacing: 0.12em; text-transform: uppercase; }
+        @keyframes lg-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        .lg-main { max-width: 1800px; margin: 0 auto; padding: 20px 24px; }
+        .lg-grid { display: grid; grid-template-columns: 280px 1fr 300px; gap: 16px; }
+
+        .lg-error { margin-bottom: 16px; padding: 12px 16px; border-radius: 12px; background: rgba(255,68,79,0.06); border: 1px solid rgba(255,68,79,0.15); display: flex; align-items: center; justify-content: space-between; }
+        .lg-error span { font-size: 13px; color: #FF6B73; font-weight: 500; }
+        .lg-error button { color: rgba(255,255,255,0.3); font-size: 16px; padding: 4px; border: none; background: none; cursor: pointer; transition: color 0.2s; }
+        .lg-error button:hover { color: #fff; }
+
+        .lg-panel { background: rgba(14,14,22,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; overflow: hidden; transition: border-color 0.3s; }
+        .lg-panel:hover { border-color: rgba(255,255,255,0.1); }
+        .lg-panel-header { padding: 16px 18px 12px; display: flex; align-items: center; justify-content: space-between; }
+        .lg-panel-title { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; font-family: 'JetBrains Mono', monospace; }
+        .lg-panel-body { padding: 0 18px 18px; }
+        .lg-panel-accent { border-top: 1px solid rgba(255,68,79,0.15); }
+
+        .lg-btn { width: 100%; padding: 10px 16px; font-size: 13px; font-weight: 600; font-family: 'Outfit', sans-serif; border: none; border-radius: 10px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; overflow: hidden; }
+        .lg-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+        .lg-btn-build { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.08); }
+        .lg-btn-build:not(:disabled):hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); color: #fff; transform: translateY(-1px); }
+        .lg-btn-analyze { background: linear-gradient(135deg, #FF444F 0%, #E03640 100%); color: #fff; box-shadow: 0 4px 20px rgba(255,68,79,0.25), inset 0 1px 0 rgba(255,255,255,0.1); }
+        .lg-btn-analyze:not(:disabled):hover { box-shadow: 0 6px 28px rgba(255,68,79,0.4), inset 0 1px 0 rgba(255,255,255,0.15); transform: translateY(-1px); }
+        .lg-btn-reset { background: transparent; color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.06); }
+        .lg-btn-reset:not(:disabled):hover { color: #FF6B73; border-color: rgba(255,68,79,0.2); background: rgba(255,68,79,0.05); }
+        .lg-btn-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent); margin: 10px 0; }
+
+        .lg-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .lg-stat-box { text-align: center; padding: 12px 8px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.04); transition: all 0.2s; }
+        .lg-stat-box:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); }
+        .lg-stat-box.red { background: rgba(255,68,79,0.06); border-color: rgba(255,68,79,0.1); }
+        .lg-stat-box.amber { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.1); }
+        .lg-stat-val { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: #fff; line-height: 1; }
+        .lg-stat-box.red .lg-stat-val { color: #FF6B73; }
+        .lg-stat-box.amber .lg-stat-val { color: #FBBF24; }
+        .lg-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+
+        .lg-tabs { display: flex; gap: 4px; padding: 4px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); }
+        .lg-tab { flex: 1; padding: 10px 16px; font-size: 13px; font-weight: 600; font-family: 'Outfit', sans-serif; border-radius: 9px; border: none; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .lg-tab-active { background: linear-gradient(135deg, #FF444F 0%, #D63840 100%); color: #fff; box-shadow: 0 4px 16px rgba(255,68,79,0.3); }
+        .lg-tab-inactive { background: transparent; color: rgba(255,255,255,0.35); }
+        .lg-tab-inactive:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
+
+        .lg-detail-panel { background: rgba(14,14,22,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px; }
+        .lg-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .lg-detail-title { font-size: 14px; font-weight: 600; color: #fff; }
+        .lg-detail-badge { padding: 3px 10px; font-size: 11px; font-weight: 600; border-radius: 6px; font-family: 'JetBrains Mono', monospace; }
+        .lg-detail-grid { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 13px; }
+        .lg-detail-key { color: rgba(255,255,255,0.35); font-weight: 500; }
+        .lg-detail-value { color: #fff; font-weight: 500; }
+        .lg-detail-close { background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; padding: 4px 8px; font-size: 12px; border-radius: 6px; transition: all 0.2s; font-family: 'Outfit', sans-serif; }
+        .lg-detail-close:hover { color: #fff; background: rgba(255,255,255,0.06); }
+        .lg-detail-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+        .lg-detail-metric { text-align: center; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); }
+        .lg-detail-metric-val { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: #fff; }
+        .lg-detail-metric-lbl { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .lg-finding { padding: 12px 14px; border-radius: 10px; border: 1px solid; margin-bottom: 8px; }
+        .lg-finding-crit { background: rgba(255,68,79,0.06); border-color: rgba(255,68,79,0.15); }
+        .lg-finding-high { background: rgba(249,115,22,0.06); border-color: rgba(249,115,22,0.15); }
+        .lg-finding-med { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.15); }
+        .lg-finding-low { background: rgba(59,130,246,0.06); border-color: rgba(59,130,246,0.15); }
+        .lg-sev-badge { display: inline-block; padding: 2px 8px; font-size: 9px; font-weight: 700; text-transform: uppercase; border-radius: 4px; letter-spacing: 0.05em; font-family: 'JetBrains Mono', monospace; }
+
+        .lg-analysis-bar { background: rgba(14,14,22,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 18px 20px; display: flex; align-items: center; gap: 16px; }
+        .lg-risk-indicator { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .lg-analysis-text { font-size: 13px; color: rgba(255,255,255,0.5); flex: 1; line-height: 1.5; }
+        .lg-analysis-score { font-size: 14px; font-weight: 700; color: #fff; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+        .lg-analysis-time { font-size: 11px; color: rgba(255,255,255,0.2); font-family: 'JetBrains Mono', monospace; }
+
+        .lg-feed-header { display: flex; align-items: center; gap: 8px; }
+        .lg-feed-live { display: flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 20px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.15); }
+        .lg-feed-live-dot { width: 5px; height: 5px; border-radius: 50%; background: #10B981; box-shadow: 0 0 6px rgba(16,185,129,0.6); animation: lg-pulse 2s ease-in-out infinite; }
+        .lg-feed-live-text { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600; color: #10B981; letter-spacing: 0.1em; text-transform: uppercase; }
+
+        .lg-sidebar-col { display: flex; flex-direction: column; gap: 12px; }
+        .lg-center-col { display: flex; flex-direction: column; gap: 12px; }
+
+        .lg-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: lg-spin 0.6s linear infinite; }
+        .lg-spinner-red { border-color: rgba(255,255,255,0.2); border-top-color: #fff; }
+        @keyframes lg-spin { to { transform: rotate(360deg); } }
+
+        @keyframes lg-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .lg-animate { animation: lg-fadein 0.4s ease-out forwards; }
+        .lg-delay-1 { animation-delay: 0.05s; opacity: 0; }
+        .lg-delay-2 { animation-delay: 0.1s; opacity: 0; }
+        .lg-delay-3 { animation-delay: 0.15s; opacity: 0; }
+        .lg-delay-4 { animation-delay: 0.2s; opacity: 0; }
+      `}</style>
+
+      <div className="lg-page">
+        {/* Header */}
+        <header className="lg-header">
+          <div className="lg-header-inner">
+            <div className="lg-header-left">
               <Link href="/">
-                <img src="/LunarDark.svg" alt="Logo" className="h-10" />
+                <img src="/LunarDark.svg" alt="Logo" style={{ height: 36 }} />
               </Link>
-              <div className="h-6 w-px bg-gray-700" />
+              <div className="lg-header-divider" />
               <div>
-                <h1 className="text-lg font-semibold text-white">Lunar Graph</h1>
-                <p className="text-xs text-gray-400">AI-Powered Fraud Detection</p>
+                <div className="lg-header-title">Lunar Graph</div>
+                <div className="lg-header-sub">Fraud Intelligence Platform</div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard"
-                className="px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors"
-              >
+            <div className="lg-header-right">
+              <Link href="/dashboard" className="lg-portal-link">
                 Partner Portal
               </Link>
-              <div className="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/30">
-                <span className="text-xs font-medium text-red-400 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                  LIVE MONITORING
-                </span>
+              <div className="lg-live-badge">
+                <span className="lg-live-dot" />
+                <span className="lg-live-text">Live Monitoring</span>
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <div className="max-w-[1800px] mx-auto px-4 py-6">
-        {/* Error Banner */}
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-between">
-            <span className="text-sm text-red-400">{error}</span>
-            <button
-              onClick={() => setError(null)}
-              className="text-red-400 hover:text-red-300"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
-        <div className="grid grid-cols-12 gap-4">
-          {/* Left Sidebar */}
-          <div className="col-span-3 space-y-4">
-            {/* Actions */}
-            <div className="bg-[#161620] rounded-lg border border-[rgba(255,68,79,0.2)] p-4">
-              <h2 className="text-sm font-semibold text-white mb-3">Actions</h2>
-              <div className="space-y-2">
-                <button
-                  onClick={handleBuildGraph}
-                  disabled={isBuilding}
-                  className="w-full px-4 py-2 text-sm font-medium bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  {isBuilding ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-gray-500 border-t-white rounded-full animate-spin" />
-                      Building...
-                    </>
-                  ) : (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="3"/>
-                        <circle cx="5" cy="6" r="2"/>
-                        <circle cx="19" cy="6" r="2"/>
-                        <circle cx="5" cy="18" r="2"/>
-                        <circle cx="19" cy="18" r="2"/>
-                        <path d="M12 9V6.5a2.5 2.5 0 0 0-5 0"/>
-                        <path d="M12 9V6.5a2.5 2.5 0 0 1 5 0"/>
-                        <path d="M12 15v2.5a2.5 2.5 0 0 1-5 0"/>
-                        <path d="M12 15v2.5a2.5 2.5 0 0 0 5 0"/>
-                      </svg>
-                      Build Graph
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleRunAnalysis}
-                  disabled={isAnalyzing}
-                  className="w-full px-4 py-2 text-sm font-medium bg-[#FF444F] hover:bg-[#FF5A63] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-red-300 border-t-white rounded-full animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                      </svg>
-                      Run Analysis
-                    </>
-                  )}
-                </button>
-
-                {/* Separator */}
-                <div className="border-t border-[rgba(255,255,255,0.1)] my-2" />
-
-                {/* Restart Investigation */}
-                <button
-                  onClick={handleRestart}
-                  disabled={isResetting}
-                  className="w-full px-4 py-2 text-sm font-medium bg-[rgba(255,255,255,0.05)] hover:bg-red-500/20 hover:border-red-500/30 border border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-gray-400 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center gap-2"
-                >
-                  {isResetting ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-gray-500 border-t-red-400 rounded-full animate-spin" />
-                      Resetting...
-                    </>
-                  ) : (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                        <path d="M3 3v5h5"/>
-                      </svg>
-                      Restart Investigation
-                    </>
-                  )}
-                </button>
-              </div>
+        {/* Main Content */}
+        <div className="lg-main">
+          {/* Error Banner */}
+          {error && (
+            <div className="lg-error">
+              <span>{error}</span>
+              <button onClick={() => setError(null)}>&#x2715;</button>
             </div>
+          )}
 
-            {/* Graph Stats */}
-            {graph && (
-              <div className="bg-[#161620] rounded-lg border border-[rgba(255,68,79,0.2)] p-4">
-                <h2 className="text-sm font-semibold text-white mb-3">Graph Stats</h2>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-2 bg-[rgba(255,255,255,0.05)] rounded">
-                    <div className="text-lg font-bold text-white">{graph.stats.totalNodes}</div>
-                    <div className="text-xs text-gray-400">Nodes</div>
-                  </div>
-                  <div className="text-center p-2 bg-[rgba(255,255,255,0.05)] rounded">
-                    <div className="text-lg font-bold text-white">{graph.stats.totalEdges}</div>
-                    <div className="text-xs text-gray-400">Edges</div>
-                  </div>
-                  <div className="text-center p-2 bg-red-500/10 rounded">
-                    <div className="text-lg font-bold text-red-400">{graph.stats.fraudEdges}</div>
-                    <div className="text-xs text-gray-400">Fraud Edges</div>
-                  </div>
-                  <div className="text-center p-2 bg-yellow-500/10 rounded">
-                    <div className="text-lg font-bold text-yellow-400">{graph.stats.avgRiskScore}%</div>
-                    <div className="text-xs text-gray-400">Avg Risk</div>
+          <div className="lg-grid">
+            {/* Left Sidebar */}
+            <div className="lg-sidebar-col">
+              {/* Actions */}
+              <div className="lg-panel lg-animate lg-delay-1">
+                <div className="lg-panel-header">
+                  <span className="lg-panel-title">Actions</span>
+                </div>
+                <div className="lg-panel-body">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <button
+                      onClick={handleBuildGraph}
+                      disabled={isBuilding}
+                      className="lg-btn lg-btn-build"
+                    >
+                      {isBuilding ? (
+                        <>
+                          <span className="lg-spinner" />
+                          Building...
+                        </>
+                      ) : (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/>
+                            <path d="M12 9V6.5a2.5 2.5 0 0 0-5 0"/><path d="M12 9V6.5a2.5 2.5 0 0 1 5 0"/><path d="M12 15v2.5a2.5 2.5 0 0 1-5 0"/><path d="M12 15v2.5a2.5 2.5 0 0 0 5 0"/>
+                          </svg>
+                          Build Graph
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={handleRunAnalysis}
+                      disabled={isAnalyzing}
+                      className="lg-btn lg-btn-analyze"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <span className="lg-spinner lg-spinner-red" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                          </svg>
+                          Run Analysis
+                        </>
+                      )}
+                    </button>
+
+                    <div className="lg-btn-divider" />
+
+                    <button
+                      onClick={handleRestart}
+                      disabled={isResetting}
+                      className="lg-btn lg-btn-reset"
+                    >
+                      {isResetting ? (
+                        <>
+                          <span className="lg-spinner" style={{ borderTopColor: '#FF6B73' }} />
+                          Resetting...
+                        </>
+                      ) : (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+                          </svg>
+                          Restart Investigation
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Agent Status */}
-            <div className="bg-[#161620] rounded-lg border border-[rgba(255,68,79,0.2)] p-4">
-              <h2 className="text-sm font-semibold text-white mb-3">Agent Status</h2>
-              <AgentStatusPanel
-                agents={analysis?.agents || []}
-                isRunning={isAnalyzing}
-                onAgentClick={handleAgentClick}
-              />
+              {/* Graph Stats */}
+              {graph && (
+                <div className="lg-panel lg-animate lg-delay-2">
+                  <div className="lg-panel-header">
+                    <span className="lg-panel-title">Graph Stats</span>
+                  </div>
+                  <div className="lg-panel-body">
+                    <div className="lg-stats-grid">
+                      <div className="lg-stat-box">
+                        <div className="lg-stat-val">{graph.stats.totalNodes}</div>
+                        <div className="lg-stat-lbl">Nodes</div>
+                      </div>
+                      <div className="lg-stat-box">
+                        <div className="lg-stat-val">{graph.stats.totalEdges}</div>
+                        <div className="lg-stat-lbl">Edges</div>
+                      </div>
+                      <div className="lg-stat-box red">
+                        <div className="lg-stat-val">{graph.stats.fraudEdges}</div>
+                        <div className="lg-stat-lbl">Fraud Edges</div>
+                      </div>
+                      <div className="lg-stat-box amber">
+                        <div className="lg-stat-val">{graph.stats.avgRiskScore}%</div>
+                        <div className="lg-stat-lbl">Avg Risk</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Agent Status */}
+              <div className="lg-panel lg-animate lg-delay-3">
+                <div className="lg-panel-header">
+                  <span className="lg-panel-title">Agent Status</span>
+                </div>
+                <div className="lg-panel-body">
+                  <AgentStatusPanel
+                    agents={analysis?.agents || []}
+                    isRunning={isAnalyzing}
+                    onAgentClick={handleAgentClick}
+                  />
+                </div>
+              </div>
+
+              {/* Detected Fraud Rings */}
+              <div className="lg-panel lg-animate lg-delay-4">
+                <div className="lg-panel-header">
+                  <span className="lg-panel-title">Fraud Rings</span>
+                  {fraudRings.length > 0 && (
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, fontWeight: 600, color: '#FF6B73' }}>
+                      {fraudRings.length} detected
+                    </span>
+                  )}
+                </div>
+                <div className="lg-panel-body">
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+                    {fraudRings.length > 0 ? (
+                      fraudRings.map((ring) => (
+                        <FraudRingCardCompact
+                          key={ring.id}
+                          ring={ring}
+                          onClick={() => handleRingSelect(ring)}
+                          isSelected={selectedRing?.id === ring.id}
+                        />
+                      ))
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                          </svg>
+                        </div>
+                        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', fontWeight: 500 }}>No fraud rings detected</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Detected Fraud Rings */}
-            <div className="bg-[#161620] rounded-lg border border-[rgba(255,68,79,0.2)] p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-white">Fraud Rings</h2>
-                {fraudRings.length > 0 && (
-                  <span className="text-xs text-red-400">{fraudRings.length} detected</span>
-                )}
+            {/* Center Panel */}
+            <div className="lg-center-col">
+              {/* Tab Switcher */}
+              <div className="lg-tabs lg-animate lg-delay-1">
+                <button
+                  onClick={() => setActiveTab('graph')}
+                  className={`lg-tab ${activeTab === 'graph' ? 'lg-tab-active' : 'lg-tab-inactive'}`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                  Knowledge Graph
+                </button>
+                <button
+                  onClick={() => setActiveTab('copilot')}
+                  className={`lg-tab ${activeTab === 'copilot' ? 'lg-tab-active' : 'lg-tab-inactive'}`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/>
+                  </svg>
+                  Investigation Copilot
+                </button>
               </div>
-              <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                {fraudRings.length > 0 ? (
-                  fraudRings.map((ring) => (
-                    <FraudRingCardCompact
-                      key={ring.id}
-                      ring={ring}
-                      onClick={() => handleRingSelect(ring)}
-                      isSelected={selectedRing?.id === ring.id}
-                    />
-                  ))
+
+              {/* Main Content Area */}
+              <div className="lg-animate lg-delay-2">
+                {activeTab === 'graph' ? (
+                  <KnowledgeGraphView
+                    graph={graph}
+                    onNodeSelect={handleNodeSelect}
+                    onEdgeSelect={handleEdgeSelect}
+                    highlightedNodes={highlightedNodes}
+                    height={500}
+                  />
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-4">
-                    No fraud rings detected yet
-                  </p>
+                  <InvestigationCopilot
+                    selectedEntities={selectedRing?.entities || (selectedNode ? [selectedNode.id] : [])}
+                    fraudRingId={selectedRing?.id}
+                    graph={graph}
+                    analysis={analysis}
+                    fraudRings={fraudRings}
+                    height={500}
+                  />
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* Center Panel */}
-          <div className="col-span-6 space-y-4">
-            {/* Tab Switcher */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setActiveTab('graph')}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                  activeTab === 'graph'
-                    ? 'bg-[#FF444F] text-white'
-                    : 'bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-white'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="20" x2="18" y2="10"/>
-                  <line x1="12" y1="20" x2="12" y2="4"/>
-                  <line x1="6" y1="20" x2="6" y2="14"/>
-                </svg>
-                Knowledge Graph
-              </button>
-              <button
-                onClick={() => setActiveTab('copilot')}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                  activeTab === 'copilot'
-                    ? 'bg-[#FF444F] text-white'
-                    : 'bg-[rgba(255,255,255,0.1)] text-gray-400 hover:text-white'
-                }`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="10" rx="2"/>
-                  <circle cx="12" cy="5" r="2"/>
-                  <path d="M12 7v4"/>
-                  <line x1="8" y1="16" x2="8" y2="16"/>
-                  <line x1="16" y1="16" x2="16" y2="16"/>
-                </svg>
-                Investigation Copilot
-              </button>
-            </div>
-
-            {/* Main Content Area */}
-            {activeTab === 'graph' ? (
-              <KnowledgeGraphView
-                graph={graph}
-                onNodeSelect={handleNodeSelect}
-                onEdgeSelect={handleEdgeSelect}
-                highlightedNodes={highlightedNodes}
-                height={500}
-              />
-            ) : (
-              <InvestigationCopilot
-                selectedEntities={selectedRing?.entities || (selectedNode ? [selectedNode.id] : [])}
-                fraudRingId={selectedRing?.id}
-                graph={graph}
-                analysis={analysis}
-                fraudRings={fraudRings}
-                height={500}
-              />
-            )}
-
-            {/* Selected Item Details */}
-            {(selectedNode || selectedEdge || selectedRing || selectedAgent || selectedAlert) && (
-              <div className="bg-[#161620] rounded-lg border border-[rgba(255,68,79,0.2)] p-4">
-                {selectedNode && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-white">
-                        Node: {selectedNode.label}
-                      </h3>
-                      <span className={`px-2 py-0.5 text-xs rounded ${
-                        selectedNode.riskScore >= 70 ? 'bg-red-500/20 text-red-400' :
-                        selectedNode.riskScore >= 50 ? 'bg-orange-500/20 text-orange-400' :
-                        selectedNode.riskScore >= 30 ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-green-500/20 text-green-400'
-                      }`}>
-                        Risk: {selectedNode.riskScore}%
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="text-gray-400">Type:</div>
-                      <div className="text-white capitalize">{selectedNode.type}</div>
-                      {selectedNode.metadata.email && (
-                        <>
-                          <div className="text-gray-400">Email:</div>
-                          <div className="text-white">{selectedNode.metadata.email}</div>
-                        </>
-                      )}
-                      {selectedNode.metadata.contractType && (
-                        <>
-                          <div className="text-gray-400">Contract:</div>
-                          <div className="text-white">{selectedNode.metadata.contractType}</div>
-                        </>
-                      )}
-                      {selectedNode.metadata.amount && (
-                        <>
-                          <div className="text-gray-400">Amount:</div>
-                          <div className="text-white">${selectedNode.metadata.amount}</div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {selectedEdge && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-white capitalize">
-                        Edge: {selectedEdge.type.replace('_', ' ')}
-                      </h3>
-                      {selectedEdge.isFraudIndicator && (
-                        <span className="px-2 py-0.5 text-xs rounded bg-red-500/20 text-red-400">
-                          Fraud Indicator
+              {/* Selected Item Details */}
+              {(selectedNode || selectedEdge || selectedRing || selectedAgent || selectedAlert) && (
+                <div className="lg-detail-panel lg-animate">
+                  {selectedNode && (
+                    <div>
+                      <div className="lg-detail-header">
+                        <span className="lg-detail-title">
+                          Node: {selectedNode.label}
                         </span>
+                        <span className={`lg-detail-badge ${
+                          selectedNode.riskScore >= 70 ? 'bg-red-500/20 text-red-400' :
+                          selectedNode.riskScore >= 50 ? 'bg-orange-500/20 text-orange-400' :
+                          selectedNode.riskScore >= 30 ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-green-500/20 text-green-400'
+                        }`}>
+                          Risk: {selectedNode.riskScore}%
+                        </span>
+                      </div>
+                      <div className="lg-detail-grid">
+                        <div className="lg-detail-key">Type:</div>
+                        <div className="lg-detail-value" style={{ textTransform: 'capitalize' }}>{selectedNode.type}</div>
+                        {selectedNode.metadata.email && (
+                          <>
+                            <div className="lg-detail-key">Email:</div>
+                            <div className="lg-detail-value">{selectedNode.metadata.email}</div>
+                          </>
+                        )}
+                        {selectedNode.metadata.contractType && (
+                          <>
+                            <div className="lg-detail-key">Contract:</div>
+                            <div className="lg-detail-value">{selectedNode.metadata.contractType}</div>
+                          </>
+                        )}
+                        {selectedNode.metadata.amount && (
+                          <>
+                            <div className="lg-detail-key">Amount:</div>
+                            <div className="lg-detail-value">${selectedNode.metadata.amount}</div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedEdge && (
+                    <div>
+                      <div className="lg-detail-header">
+                        <span className="lg-detail-title" style={{ textTransform: 'capitalize' }}>
+                          Edge: {selectedEdge.type.replace('_', ' ')}
+                        </span>
+                        {selectedEdge.isFraudIndicator && (
+                          <span className="lg-detail-badge" style={{ background: 'rgba(255,68,79,0.15)', color: '#FF6B73' }}>
+                            Fraud Indicator
+                          </span>
+                        )}
+                      </div>
+                      <div className="lg-detail-grid">
+                        <div className="lg-detail-key">Weight:</div>
+                        <div className="lg-detail-value">{(selectedEdge.weight * 100).toFixed(0)}%</div>
+                        {selectedEdge.metadata.confidence && (
+                          <>
+                            <div className="lg-detail-key">Confidence:</div>
+                            <div className="lg-detail-value">{selectedEdge.metadata.confidence}%</div>
+                          </>
+                        )}
+                        {selectedEdge.metadata.description && (
+                          <>
+                            <div className="lg-detail-key">Details:</div>
+                            <div className="lg-detail-value">{selectedEdge.metadata.description}</div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRing && (
+                    <div>
+                      <div className="lg-detail-header">
+                        <span className="lg-detail-title">{selectedRing.name}</span>
+                        <span className={`lg-detail-badge ${
+                          selectedRing.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
+                          selectedRing.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                          'bg-yellow-500/20 text-yellow-400'
+                        }`}>
+                          {selectedRing.severity.toUpperCase()}
+                        </span>
+                      </div>
+
+                      {/* Metrics */}
+                      <div className="lg-detail-metrics">
+                        <div className="lg-detail-metric">
+                          <div className="lg-detail-metric-val">{selectedRing.confidence}%</div>
+                          <div className="lg-detail-metric-lbl">Confidence</div>
+                        </div>
+                        <div className="lg-detail-metric">
+                          <div className="lg-detail-metric-val">{selectedRing.entities.length}</div>
+                          <div className="lg-detail-metric-lbl">Entities</div>
+                        </div>
+                        <div className="lg-detail-metric">
+                          <div className="lg-detail-metric-val">${selectedRing.exposure.toFixed(0)}</div>
+                          <div className="lg-detail-metric-lbl">Exposure</div>
+                        </div>
+                      </div>
+
+                      {/* AI Summary with markdown */}
+                      {selectedRing.aiSummary && (
+                        <div className="max-h-[300px] overflow-y-auto" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
+                          <MarkdownContent content={selectedRing.aiSummary} />
+                        </div>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="text-gray-400">Weight:</div>
-                      <div className="text-white">{(selectedEdge.weight * 100).toFixed(0)}%</div>
-                      {selectedEdge.metadata.confidence && (
-                        <>
-                          <div className="text-gray-400">Confidence:</div>
-                          <div className="text-white">{selectedEdge.metadata.confidence}%</div>
-                        </>
-                      )}
-                      {selectedEdge.metadata.description && (
-                        <>
-                          <div className="text-gray-400">Details:</div>
-                          <div className="text-white">{selectedEdge.metadata.description}</div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {selectedRing && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-white">{selectedRing.name}</h3>
-                      <span className={`px-2 py-0.5 text-xs rounded ${
-                        selectedRing.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
-                        selectedRing.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                        'bg-yellow-500/20 text-yellow-400'
-                      }`}>
-                        {selectedRing.severity.toUpperCase()}
-                      </span>
-                    </div>
-
-                    {/* Metrics */}
-                    <div className="grid grid-cols-3 gap-2 text-center mb-4">
-                      <div className="p-2 bg-[rgba(255,255,255,0.05)] rounded">
-                        <div className="text-white font-medium">{selectedRing.confidence}%</div>
-                        <div className="text-xs text-gray-500">Confidence</div>
-                      </div>
-                      <div className="p-2 bg-[rgba(255,255,255,0.05)] rounded">
-                        <div className="text-white font-medium">{selectedRing.entities.length}</div>
-                        <div className="text-xs text-gray-500">Entities</div>
-                      </div>
-                      <div className="p-2 bg-[rgba(255,255,255,0.05)] rounded">
-                        <div className="text-white font-medium">${selectedRing.exposure.toFixed(0)}</div>
-                        <div className="text-xs text-gray-500">Exposure</div>
-                      </div>
-                    </div>
-
-                    {/* AI Summary with markdown */}
-                    {selectedRing.aiSummary && (
-                      <div className="max-h-[300px] overflow-y-auto border-t border-white/10 pt-3">
-                        <MarkdownContent content={selectedRing.aiSummary} />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {selectedAgent && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-white">{selectedAgent.agentName}</h3>
-                      <button
-                        onClick={() => setSelectedAgent(null)}
-                        className="text-gray-400 hover:text-white text-xs"
-                      >
-                        ✕ Close
-                      </button>
-                    </div>
-
-                    {/* Agent Summary with markdown */}
-                    <div className="mb-4 pb-3 border-b border-white/10">
-                      <MarkdownContent content={selectedAgent.summary} />
-                    </div>
-
-                    {/* Agent Findings */}
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                      <div className="text-xs font-medium text-gray-400 mb-2">
-                        Findings ({selectedAgent.findings.length})
-                      </div>
-                      {selectedAgent.findings.slice(0, 10).map((finding, idx) => (
-                        <div
-                          key={idx}
-                          className={`p-3 rounded border ${
-                            finding.severity === 'critical' ? 'bg-red-500/10 border-red-500/30' :
-                            finding.severity === 'high' ? 'bg-orange-500/10 border-orange-500/30' :
-                            finding.severity === 'medium' ? 'bg-yellow-500/10 border-yellow-500/30' :
-                            'bg-blue-500/10 border-blue-500/30'
-                          }`}
+                  {selectedAgent && (
+                    <div>
+                      <div className="lg-detail-header">
+                        <span className="lg-detail-title">{selectedAgent.agentName}</span>
+                        <button
+                          onClick={() => setSelectedAgent(null)}
+                          className="lg-detail-close"
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase rounded ${
-                              finding.severity === 'critical' ? 'bg-red-500 text-white' :
-                              finding.severity === 'high' ? 'bg-orange-500 text-white' :
-                              finding.severity === 'medium' ? 'bg-yellow-500 text-black' :
-                              'bg-blue-500 text-white'
-                            }`}>
-                              {finding.severity}
-                            </span>
-                            <span className="text-xs text-gray-400 capitalize">
-                              {finding.type.replace(/_/g, ' ')}
-                            </span>
-                          </div>
-                          <MarkdownContent content={finding.description} />
-                          {finding.entities && finding.entities.length > 0 && (
-                            <div className="mt-2 text-xs text-gray-500">
-                              Entities: {resolveEntityLabels(finding.entities.slice(0, 3), graph).join(', ')}
-                              {finding.entities.length > 3 && ` +${finding.entities.length - 3} more`}
-                            </div>
-                          )}
+                          &#x2715; Close
+                        </button>
+                      </div>
+
+                      {/* Agent Summary with markdown */}
+                      <div style={{ marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                        <MarkdownContent content={selectedAgent.summary} />
+                      </div>
+
+                      {/* Agent Findings */}
+                      <div className="max-h-[300px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+                        <div style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10, fontFamily: "'JetBrains Mono', monospace" }}>
+                          Findings ({selectedAgent.findings.length})
                         </div>
-                      ))}
-                      {selectedAgent.findings.length > 10 && (
-                        <div className="text-xs text-gray-500 text-center py-2">
-                          +{selectedAgent.findings.length - 10} more findings
+                        {selectedAgent.findings.slice(0, 10).map((finding, idx) => (
+                          <div
+                            key={idx}
+                            className={`lg-finding ${
+                              finding.severity === 'critical' ? 'lg-finding-crit' :
+                              finding.severity === 'high' ? 'lg-finding-high' :
+                              finding.severity === 'medium' ? 'lg-finding-med' :
+                              'lg-finding-low'
+                            }`}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                              <span className={`lg-sev-badge ${
+                                finding.severity === 'critical' ? 'bg-red-500 text-white' :
+                                finding.severity === 'high' ? 'bg-orange-500 text-white' :
+                                finding.severity === 'medium' ? 'bg-yellow-500 text-black' :
+                                'bg-blue-500 text-white'
+                              }`}>
+                                {finding.severity}
+                              </span>
+                              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textTransform: 'capitalize' }}>
+                                {finding.type.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                            <MarkdownContent content={finding.description} />
+                            {finding.entities && finding.entities.length > 0 && (
+                              <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+                                Entities: {resolveEntityLabels(finding.entities.slice(0, 3), graph).join(', ')}
+                                {finding.entities.length > 3 && ` +${finding.entities.length - 3} more`}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        {selectedAgent.findings.length > 10 && (
+                          <div style={{ textAlign: 'center', padding: 8, fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>
+                            +{selectedAgent.findings.length - 10} more findings
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedAlert && (
+                    <div>
+                      <div className="lg-detail-header">
+                        <span className="lg-detail-title">{selectedAlert.title}</span>
+                        <button
+                          onClick={() => setSelectedAlert(null)}
+                          className="lg-detail-close"
+                        >
+                          &#x2715; Close
+                        </button>
+                      </div>
+
+                      {/* Severity badge */}
+                      <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span className={`lg-sev-badge ${
+                          selectedAlert.severity === 'critical' ? 'bg-red-500 text-white' :
+                          selectedAlert.severity === 'high' ? 'bg-orange-500 text-white' :
+                          selectedAlert.severity === 'medium' ? 'bg-yellow-500 text-black' :
+                          'bg-blue-500 text-white'
+                        }`}>
+                          {selectedAlert.severity.toUpperCase()}
+                        </span>
+                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontFamily: "'JetBrains Mono', monospace" }}>
+                          {new Date(selectedAlert.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+
+                      {/* Entities */}
+                      {selectedAlert.entities.length > 0 && (
+                        <div style={{ marginBottom: 12, fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
+                          <span style={{ color: 'rgba(255,255,255,0.2)' }}>Entities involved:</span>{' '}
+                          {resolveEntityLabels(selectedAlert.entities, graph).join(', ')}
                         </div>
                       )}
-                    </div>
-                  </div>
-                )}
 
-                {selectedAlert && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-white">{selectedAlert.title}</h3>
-                      <button
-                        onClick={() => setSelectedAlert(null)}
-                        className="text-gray-400 hover:text-white text-xs"
-                      >
-                        ✕ Close
-                      </button>
-                    </div>
-
-                    {/* Severity badge */}
-                    <div className="mb-3">
-                      <span className={`px-2 py-0.5 text-xs rounded font-medium ${
-                        selectedAlert.severity === 'critical' ? 'bg-red-500 text-white' :
-                        selectedAlert.severity === 'high' ? 'bg-orange-500 text-white' :
-                        selectedAlert.severity === 'medium' ? 'bg-yellow-500 text-black' :
-                        'bg-blue-500 text-white'
-                      }`}>
-                        {selectedAlert.severity.toUpperCase()}
-                      </span>
-                      <span className="ml-2 text-xs text-gray-500">
-                        {new Date(selectedAlert.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-
-                    {/* Entities */}
-                    {selectedAlert.entities.length > 0 && (
-                      <div className="mb-3 text-xs text-gray-400">
-                        <span className="text-gray-500">Entities involved:</span>{' '}
-                        {resolveEntityLabels(selectedAlert.entities, graph).join(', ')}
+                      {/* AI Explanation / Description with markdown */}
+                      <div className="max-h-[400px] overflow-y-auto" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
+                        <MarkdownContent content={selectedAlert.aiExplanation || selectedAlert.description} />
                       </div>
-                    )}
-
-                    {/* AI Explanation / Description with markdown */}
-                    <div className="max-h-[400px] overflow-y-auto border-t border-white/10 pt-3">
-                      <MarkdownContent content={selectedAlert.aiExplanation || selectedAlert.description} />
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
 
-            {/* Analysis Summary */}
-            {analysis && (
-              <div className="bg-[#161620] rounded-lg border border-[rgba(255,68,79,0.2)] p-4">
-                <h2 className="text-sm font-semibold text-white mb-3">Analysis Summary</h2>
-                <p className="text-sm text-gray-400">{analysis.summary}</p>
-                <div className="mt-3 flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${
-                      analysis.overallRiskScore >= 70 ? 'bg-red-500' :
-                      analysis.overallRiskScore >= 40 ? 'bg-yellow-500' :
-                      'bg-green-500'
-                    }`} />
-                    <span className="text-sm text-white">
-                      Overall Risk: {analysis.overallRiskScore}/100
+              {/* Analysis Summary */}
+              {analysis && (
+                <div className="lg-analysis-bar lg-animate">
+                  <div className={`lg-risk-indicator ${
+                    analysis.overallRiskScore >= 70 ? 'bg-red-500' :
+                    analysis.overallRiskScore >= 40 ? 'bg-yellow-500' :
+                    'bg-green-500'
+                  }`} style={{ boxShadow: analysis.overallRiskScore >= 70 ? '0 0 12px rgba(239,68,68,0.5)' : analysis.overallRiskScore >= 40 ? '0 0 12px rgba(234,179,8,0.5)' : '0 0 12px rgba(34,197,94,0.5)' }} />
+                  <span className="lg-analysis-text">{analysis.summary}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                    <span className="lg-analysis-score">
+                      {analysis.overallRiskScore}/100
+                    </span>
+                    <span className="lg-analysis-time">
+                      {new Date(analysis.timestamp).toLocaleTimeString()}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500">
-                    Analyzed at {new Date(analysis.timestamp).toLocaleTimeString()}
-                  </span>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Right Sidebar */}
-          <div className="col-span-3 space-y-4">
-            {/* Alert Summary */}
-            {analysis?.alerts && analysis.alerts.length > 0 && (
-              <div className="bg-[#161620] rounded-lg border border-[rgba(255,68,79,0.2)] p-4">
-                <h2 className="text-sm font-semibold text-white mb-3">Alert Summary</h2>
-                <AlertSummary alerts={analysis.alerts} />
-              </div>
-            )}
+            {/* Right Sidebar */}
+            <div className="lg-sidebar-col">
+              {/* Alert Summary */}
+              {analysis?.alerts && analysis.alerts.length > 0 && (
+                <div className="lg-panel lg-animate lg-delay-1">
+                  <div className="lg-panel-header">
+                    <span className="lg-panel-title">Alert Summary</span>
+                  </div>
+                  <div className="lg-panel-body">
+                    <AlertSummary alerts={analysis.alerts} />
+                  </div>
+                </div>
+              )}
 
-            {/* Live Alert Feed */}
-            <div className="bg-[#161620] rounded-lg border border-[rgba(255,68,79,0.2)] p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-white">Live Feed</h2>
-                <span className="flex items-center gap-1 text-xs text-gray-400">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  Live
-                </span>
-              </div>
-              <div className="max-h-[600px] overflow-y-auto">
-                <AlertFeed
-                  alerts={analysis?.alerts || []}
-                  onAlertClick={handleAlertClick}
-                  maxItems={15}
-                />
+              {/* Live Alert Feed */}
+              <div className="lg-panel lg-animate lg-delay-2" style={{ flex: 1 }}>
+                <div className="lg-panel-header">
+                  <span className="lg-panel-title">Live Feed</span>
+                  <div className="lg-feed-live">
+                    <span className="lg-feed-live-dot" />
+                    <span className="lg-feed-live-text">Live</span>
+                  </div>
+                </div>
+                <div className="lg-panel-body">
+                  <div className="max-h-[600px] overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+                    <AlertFeed
+                      alerts={analysis?.alerts || []}
+                      onAlertClick={handleAlertClick}
+                      maxItems={15}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

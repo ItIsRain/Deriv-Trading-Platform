@@ -18,7 +18,10 @@ import {
   IconPlus,
   IconMail,
   IconTrash,
-  IconBroadcast
+  IconBroadcast,
+  IconSettings,
+  IconArrowUpRight,
+  IconChartLine
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import Link from 'next/link';
@@ -216,6 +219,7 @@ export default function AffiliatesPage() {
     { icon: IconBroadcast, label: 'Broadcast', id: 'broadcast', href: '/broadcast' },
     { icon: IconWallet, label: 'Earnings', id: 'commissions', href: '/earnings' },
     { icon: IconFileAnalytics, label: 'Analytics', id: 'reports', href: '/analytics' },
+    { icon: IconSettings, label: 'Settings', id: 'settings', href: '/settings' },
   ];
 
   return (
@@ -533,45 +537,105 @@ export default function AffiliatesPage() {
           padding: 32px;
         }
 
-        .page-stats {
+        .stats-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 20px;
-          margin-bottom: 32px;
+          margin-bottom: 28px;
         }
 
-        .mini-stat {
-          background: var(--bg-secondary);
+        .stat-card {
+          background: var(--bg-card);
           border: 1px solid var(--border-subtle);
-          border-radius: 12px;
-          padding: 20px;
-          display: flex;
-          align-items: center;
-          gap: 16px;
+          border-radius: 20px;
+          padding: 24px;
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .mini-stat-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 10px;
-          background: var(--accent-glow);
+        .stat-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, var(--accent), transparent);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover {
+          border-color: var(--border-medium);
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card:hover::before {
+          opacity: 1;
+        }
+
+        .stat-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          margin-bottom: 20px;
+        }
+
+        .stat-icon-wrap {
+          width: 52px;
+          height: 52px;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--accent);
+          position: relative;
         }
 
-        .mini-stat-content h3 {
-          font-size: 24px;
+        .stat-icon-wrap.green {
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.05) 100%);
+          color: var(--success);
+        }
+
+        .stat-icon-wrap.orange {
+          background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.05) 100%);
+          color: var(--warning);
+        }
+
+        .stat-icon-wrap.purple {
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0.05) 100%);
+          color: #8b5cf6;
+        }
+
+        .stat-trend {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 12px;
           font-weight: 600;
-          color: var(--text-primary);
-          margin: 0;
+          padding: 6px 10px;
+          border-radius: 8px;
         }
 
-        .mini-stat-content p {
+        .stat-trend.up {
+          background: rgba(16, 185, 129, 0.1);
+          color: var(--success);
+        }
+
+        .stat-value {
+          font-size: 36px;
+          font-weight: 700;
+          color: var(--text-primary);
+          letter-spacing: -0.03em;
+          line-height: 1;
+          margin-bottom: 8px;
+        }
+
+        .stat-label {
           font-size: 13px;
           color: var(--text-muted);
-          margin: 4px 0 0 0;
+          font-weight: 500;
         }
 
         .card {
@@ -952,33 +1016,45 @@ export default function AffiliatesPage() {
 
           <div className="content-area">
             {/* Stats */}
-            <div className="page-stats">
-              <div className="mini-stat animate-in delay-1">
-                <div className="mini-stat-icon">
-                  <IconUsers size={24} />
+            <div className="stats-grid">
+              <div className="stat-card animate-in delay-1">
+                <div className="stat-header">
+                  <div className="stat-icon-wrap green">
+                    <IconUsers size={24} />
+                  </div>
+                  <div className="stat-trend up">
+                    <IconArrowUpRight size={14} />
+                    12%
+                  </div>
                 </div>
-                <div className="mini-stat-content">
-                  <h3>{affiliates.length}</h3>
-                  <p>Total Affiliates</p>
-                </div>
+                <div className="stat-value">{affiliates.length}</div>
+                <div className="stat-label">Total Affiliates</div>
               </div>
-              <div className="mini-stat animate-in delay-2">
-                <div className="mini-stat-icon">
-                  <IconUserPlus size={24} />
+              <div className="stat-card animate-in delay-2">
+                <div className="stat-header">
+                  <div className="stat-icon-wrap orange">
+                    <IconUserPlus size={24} />
+                  </div>
+                  <div className="stat-trend up">
+                    <IconArrowUpRight size={14} />
+                    8%
+                  </div>
                 </div>
-                <div className="mini-stat-content">
-                  <h3>{totalStats.clients}</h3>
-                  <p>Total Clients</p>
-                </div>
+                <div className="stat-value">{totalStats.clients}</div>
+                <div className="stat-label">Total Clients</div>
               </div>
-              <div className="mini-stat animate-in delay-3">
-                <div className="mini-stat-icon">
-                  <IconChevronRight size={24} />
+              <div className="stat-card animate-in delay-3">
+                <div className="stat-header">
+                  <div className="stat-icon-wrap purple">
+                    <IconChartLine size={24} />
+                  </div>
+                  <div className="stat-trend up">
+                    <IconArrowUpRight size={14} />
+                    18%
+                  </div>
                 </div>
-                <div className="mini-stat-content">
-                  <h3>{totalStats.trades}</h3>
-                  <p>Total Trades</p>
-                </div>
+                <div className="stat-value">{totalStats.trades}</div>
+                <div className="stat-label">Total Trades</div>
               </div>
             </div>
 

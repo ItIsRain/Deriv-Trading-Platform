@@ -22,7 +22,8 @@ import {
   IconTrendingUp,
   IconWorld,
   IconDeviceDesktop,
-  IconBroadcast
+  IconBroadcast,
+  IconSettings
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { initializePartner, getAffiliates, getClients, getTrades, getStats, getStatsAsync, getWeeklyDataAsync, getTopAffiliatesAsync } from '@/lib/store';
@@ -72,6 +73,7 @@ export default function AnalyticsPage() {
     { icon: IconBroadcast, label: 'Broadcast', id: 'broadcast', href: '/broadcast' },
     { icon: IconWallet, label: 'Earnings', id: 'commissions', href: '/earnings' },
     { icon: IconFileAnalytics, label: 'Analytics', id: 'reports', href: '/analytics' },
+    { icon: IconSettings, label: 'Settings', id: 'settings', href: '/settings' },
   ];
 
   const trafficSources = [

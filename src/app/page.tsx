@@ -25,7 +25,8 @@ import {
   IconActivity,
   IconClock,
   IconBolt,
-  IconBroadcast
+  IconBroadcast,
+  IconSettings
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { initializePartner, getAffiliates, getClients, getTrades, getStats, getStatsAsync, getAffiliatesAsync, getRecentActivityAsync, getWeeklyDataAsync, getTopAffiliatesAsync } from '@/lib/store';
@@ -242,6 +243,7 @@ export default function PartnerDashboard() {
     { icon: IconBroadcast, label: 'Broadcast', id: 'broadcast', href: '/broadcast' },
     { icon: IconWallet, label: 'Earnings', id: 'commissions', href: '/earnings' },
     { icon: IconFileAnalytics, label: 'Analytics', id: 'reports', href: '/analytics' },
+    { icon: IconSettings, label: 'Settings', id: 'settings', href: '/settings' },
   ];
 
   // Get icon and color for activity type
@@ -310,7 +312,7 @@ export default function PartnerDashboard() {
 
         /* Sidebar */
         .sidebar {
-          width: 260px;
+          width: 240px;
           background: var(--bg-secondary);
           border-right: 1px solid var(--border-subtle);
           display: flex;
@@ -475,7 +477,7 @@ export default function PartnerDashboard() {
         /* Main Content */
         .main-content {
           flex: 1;
-          margin-left: 260px;
+          margin-left: 240px;
           background: var(--bg-primary);
           position: relative;
         }

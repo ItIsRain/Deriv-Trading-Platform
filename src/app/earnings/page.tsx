@@ -19,7 +19,8 @@ import {
   IconCalendar,
   IconDownload,
   IconTrendingUp,
-  IconBroadcast
+  IconBroadcast,
+  IconSettings
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { initializePartner, getAffiliates, getClients, getTrades, getStats, getStatsAsync, getEarningsDataAsync } from '@/lib/store';
@@ -61,6 +62,7 @@ export default function EarningsPage() {
     { icon: IconBroadcast, label: 'Broadcast', id: 'broadcast', href: '/broadcast' },
     { icon: IconWallet, label: 'Earnings', id: 'commissions', href: '/earnings' },
     { icon: IconFileAnalytics, label: 'Analytics', id: 'reports', href: '/analytics' },
+    { icon: IconSettings, label: 'Settings', id: 'settings', href: '/settings' },
   ];
 
   // Use real earnings data or fallback to empty
@@ -614,7 +616,7 @@ export default function EarningsPage() {
             ))}
 
             <span className="nav-label">Intelligence</span>
-            <Link href="/dashboard" className="nav-item nav-item-special">
+            <Link href="/lunar-graph" className="nav-item nav-item-special">
               <IconShield size={18} stroke={1.5} />
               <span style={{ flex: 1 }}>Fraud Detection</span>
               <Badge size="xs" color="red" variant="filled">Live</Badge>

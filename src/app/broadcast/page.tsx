@@ -12,7 +12,9 @@ import {
   IconSettings,
   IconBroadcast,
   IconChevronDown,
+  IconShield,
 } from '@tabler/icons-react';
+import { Badge, Avatar } from '@mantine/core';
 import { DerivClient } from '@/lib/deriv';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Drawing, TextDrawing, Point, SYMBOLS } from '@/types';
@@ -445,6 +447,47 @@ export default function BroadcastPage() {
           box-shadow: 0 4px 20px var(--accent-glow);
         }
 
+        .nav-label:not(:first-child) {
+          margin-top: 16px;
+        }
+
+        .nav-item-special {
+          background: linear-gradient(135deg, rgba(255, 68, 79, 0.1) 0%, rgba(255, 68, 79, 0.05) 100%);
+          border: 1px solid rgba(255, 68, 79, 0.2);
+        }
+
+        .nav-item-special:hover {
+          background: linear-gradient(135deg, rgba(255, 68, 79, 0.15) 0%, rgba(255, 68, 79, 0.1) 100%);
+          border-color: rgba(255, 68, 79, 0.3);
+        }
+
+        .user-section {
+          padding: 16px;
+          border-top: 1px solid var(--border-subtle);
+        }
+
+        .user-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .user-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .user-name {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+
+        .user-role {
+          font-size: 11px;
+          color: var(--text-muted);
+        }
+
         .main-content {
           flex: 1;
           margin-left: 240px;
@@ -756,25 +799,41 @@ export default function BroadcastPage() {
         {/* Sidebar */}
         <aside className="sidebar">
           <div className="logo-section">
-            <Link href="/" className="logo">
-              <div className="logo-icon">D</div>
-              <span className="logo-text">Deriv Partner</span>
-            </Link>
+            <div className="logo">
+              <img src="\LunarDark.svg" alt="Logo" style={{ height: 64, width: 'auto' }} />
+            </div>
           </div>
 
           <nav className="nav-section">
-            <div className="nav-label">Main Menu</div>
+            <div className="nav-label">Menu</div>
             {navItems.map((item) => (
               <Link
                 key={item.id}
                 href={item.href}
                 className={`nav-item ${activeNav === item.id ? 'active' : ''}`}
               >
-                <item.icon size={20} />
+                <item.icon size={18} stroke={1.5} />
                 {item.label}
               </Link>
             ))}
+
+            <span className="nav-label">Intelligence</span>
+            <Link href="/lunar-graph" className="nav-item nav-item-special">
+              <IconShield size={18} stroke={1.5} />
+              <span style={{ flex: 1 }}>Fraud Detection</span>
+              <Badge size="xs" color="red" variant="filled">Live</Badge>
+            </Link>
           </nav>
+
+          <div className="user-section">
+            <div className="user-card">
+              <Avatar color="red" radius="md" size={40}>JD</Avatar>
+              <div className="user-info">
+                <div className="user-name">John Doe</div>
+                <div className="user-role">Premium Partner</div>
+              </div>
+            </div>
+          </div>
         </aside>
 
         {/* Main Content */}
