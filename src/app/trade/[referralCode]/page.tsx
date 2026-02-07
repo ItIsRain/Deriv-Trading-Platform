@@ -470,16 +470,32 @@ export default function TradingPage() {
     try {
       let drawings: Drawing[] = [];
 
-      // Try supabase first
+      // Try supabase first - look for this specific affiliate's broadcast
       if (isSupabaseConfigured()) {
-        const { data, error } = await (supabase as any)
+        // First try to find broadcast matching this referral code
+        let { data, error } = await (supabase as any)
           .from('broadcast_drawings')
           .select('*')
+          .eq('referral_code', referralCode)
           .eq('symbol', symbol)
           .eq('is_live', true)
           .single();
 
-        if (!error && data?.drawings) {
+        // If not found, try to find any live broadcast for this symbol (backwards compatibility)
+        if (error || !data) {
+          const fallbackResult = await (supabase as any)
+            .from('broadcast_drawings')
+            .select('*')
+            .eq('symbol', symbol)
+            .eq('is_live', true)
+            .single();
+
+          if (!fallbackResult.error && fallbackResult.data) {
+            data = fallbackResult.data;
+          }
+        }
+
+        if (data?.drawings) {
           const parsed = typeof data.drawings === 'string' ? JSON.parse(data.drawings) : data.drawings;
           if (Array.isArray(parsed)) {
             drawings = parsed;
@@ -487,13 +503,27 @@ export default function TradingPage() {
         }
       }
 
-      // Fallback to localStorage
+      // Fallback to localStorage - check referral-code specific key first
+      if (drawings.length === 0) {
+        const specificData = localStorage.getItem(`broadcast_${referralCode}_${symbol}`);
+        if (specificData) {
+          const parsed = JSON.parse(specificData);
+          if (parsed.is_live && parsed.drawings && Array.isArray(parsed.drawings)) {
+            drawings = parsed.drawings;
+          }
+        }
+      }
+
+      // Also check generic partner key as fallback
       if (drawings.length === 0) {
         const partnerData = localStorage.getItem(`broadcast_partner_${symbol}`);
         if (partnerData) {
           const parsed = JSON.parse(partnerData);
           if (parsed.is_live && parsed.drawings && Array.isArray(parsed.drawings)) {
-            drawings = parsed.drawings;
+            // Only use if it matches this referral code or has no referral code
+            if (!parsed.referralCode || parsed.referralCode === referralCode) {
+              drawings = parsed.drawings;
+            }
           }
         }
       }
@@ -3167,7 +3197,14 @@ export default function TradingPage() {
               {/* Show Analysis Button */}
               <button
                 className="show-analysis-btn"
-                onClick={fetchAnalysis}
+                onClick={() => {
+                  if (showSignals) {
+                    setShowSignals(false);
+                    setAffiliateSignals([]);
+                  } else {
+                    fetchAnalysis();
+                  }
+                }}
                 disabled={analysisLoading}
               >
                 {analysisLoading ? (

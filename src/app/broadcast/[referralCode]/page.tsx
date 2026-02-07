@@ -5,9 +5,10 @@ import { useParams } from 'next/navigation';
 import { notifications } from '@mantine/notifications';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { getAffiliateByReferralCode } from '@/lib/store';
+import { getAffiliateByReferralCode, getAffiliateByReferralCodeAsync } from '@/lib/store';
 import { DerivClient } from '@/lib/deriv';
 import { Drawing, CandleData, SYMBOLS } from '@/types';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 // Dynamic import for BroadcastChart (client-side only)
 const BroadcastChart = dynamic(() => import('@/components/BroadcastChart'), {
@@ -26,7 +27,7 @@ export default function BroadcastPage() {
   const [affiliateName, setAffiliateName] = useState('Unknown');
   const [isLoading, setIsLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
-  const [symbol, setSymbol] = useState('1HZ100V');
+  const [symbol, setSymbol] = useState('R_100');
   const [currentPrice, setCurrentPrice] = useState(0);
   const [candles, setCandles] = useState<CandleData[]>([]);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
@@ -138,26 +139,83 @@ export default function BroadcastPage() {
     setCandles([]);
   };
 
+  // Save broadcast to Supabase
+  const saveBroadcastToSupabase = async (drawingsData: Drawing[], live: boolean) => {
+    if (!isSupabaseConfigured()) return;
+
+    try {
+      const db = supabase as any;
+
+      // Upsert broadcast data (update if exists, insert if not)
+      const { error } = await db
+        .from('broadcast_drawings')
+        .upsert({
+          referral_code: referralCode,
+          symbol: symbol,
+          drawings: drawingsData,
+          is_live: live,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'referral_code,symbol',
+        });
+
+      if (error) {
+        console.error('[Broadcast] Error saving to Supabase:', error);
+      } else {
+        console.log('[Broadcast] Saved to Supabase, live:', live);
+      }
+    } catch (err) {
+      console.error('[Broadcast] Error saving broadcast:', err);
+    }
+  };
+
   // Save drawings
   const handleDrawingsChange = (newDrawings: Drawing[]) => {
     setDrawings(newDrawings);
     localStorage.setItem(`broadcast_drawings_${referralCode}`, JSON.stringify(newDrawings));
 
-    // Also save with symbol-specific key for clients to load
-    localStorage.setItem(
-      `broadcast_${referralCode}_${symbol}`,
-      JSON.stringify({
-        drawings: newDrawings,
-        symbol,
-        updatedAt: new Date().toISOString(),
-      })
-    );
+    // Save to localStorage with format that trade page expects
+    const broadcastData = {
+      drawings: newDrawings,
+      symbol,
+      referralCode,
+      is_live: isLive,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Save with referral code key
+    localStorage.setItem(`broadcast_${referralCode}_${symbol}`, JSON.stringify(broadcastData));
+
+    // Also save with partner key for trade page to find
+    localStorage.setItem(`broadcast_partner_${symbol}`, JSON.stringify(broadcastData));
+
+    // Save to Supabase if live
+    if (isLive) {
+      saveBroadcastToSupabase(newDrawings, true);
+    }
   };
 
   // Toggle live broadcast
-  const toggleLive = () => {
-    setIsLive(!isLive);
-    if (!isLive) {
+  const toggleLive = async () => {
+    const newLiveState = !isLive;
+    setIsLive(newLiveState);
+
+    // Update localStorage with new live state
+    const broadcastData = {
+      drawings,
+      symbol,
+      referralCode,
+      is_live: newLiveState,
+      updatedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem(`broadcast_${referralCode}_${symbol}`, JSON.stringify(broadcastData));
+    localStorage.setItem(`broadcast_partner_${symbol}`, JSON.stringify(broadcastData));
+
+    // Save to Supabase
+    await saveBroadcastToSupabase(drawings, newLiveState);
+
+    if (newLiveState) {
       notifications.show({
         title: 'Broadcast Started',
         message: 'Your analysis is now visible to your clients',
