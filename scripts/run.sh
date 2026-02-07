@@ -2,7 +2,7 @@
 # Deriv Token Generator Runner
 # Activates venv and runs the Python script
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="/var/www/Deriv-Trading-Platform/scripts"
 cd "$SCRIPT_DIR"
 
 # Activate virtual environment
